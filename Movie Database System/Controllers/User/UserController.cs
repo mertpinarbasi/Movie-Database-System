@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Movie_Database_System.Models.ViewModels;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +20,33 @@ namespace Movie_Database_System.Controllers.User
         }
 
         [HttpPost]
-        public IActionResult RegisterUser( String name , String surname )
+        public IActionResult RegisterUser( UserRegisterVM userRegisterViewModel)
         {
-            Console.WriteLine("name" + name);
-            // database eklemece
-            return Json(name);
+            #region implicit 
+            Movie_Database_System.Models.User newUser = userRegisterViewModel;
+            newUser.userId = -1; 
+            #endregion
+            return Json(newUser);
         }
+        public IActionResult Login()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult LoginUser(UserLoginVM userLoginViewModel ) 
+        {
+
+
+            #region implicit 
+            Movie_Database_System.Models.User loggedUser = userLoginViewModel;
+           
+            #endregion
+            return Json(loggedUser);
+           
+        }
+
+
+
+
     }
 }
