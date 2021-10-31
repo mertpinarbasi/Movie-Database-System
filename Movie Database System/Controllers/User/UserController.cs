@@ -24,8 +24,14 @@ namespace Movie_Database_System.Controllers.User
         {
             #region implicit 
             Movie_Database_System.Models.User newUser = userRegisterViewModel;
-            newUser.userId = -1; 
+            newUser.userId = -1;
             #endregion
+
+
+            if (!ModelState.IsValid)
+            {
+                return Json(ModelState.Values.FirstOrDefault().Errors);
+            }
             return Json(newUser);
         }
         public IActionResult Login()
@@ -41,6 +47,14 @@ namespace Movie_Database_System.Controllers.User
             Movie_Database_System.Models.User loggedUser = userLoginViewModel;
            
             #endregion
+
+
+            if(!ModelState.IsValid)
+            {
+               
+              
+                return Json(ModelState.Values.FirstOrDefault().Errors); 
+            }
             return Json(loggedUser);
            
         }
