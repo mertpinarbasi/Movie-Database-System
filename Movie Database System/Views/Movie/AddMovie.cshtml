@@ -1,0 +1,69 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    <!DOCTYPE html>
+    <html lang="en">
+    <head >
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+       
+        <style>
+            textarea
+            {
+                resize: none;
+            }
+
+            
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <form enctype="multipart/form-data" asp-action="AddMovie" asp-controller="Movie" method="POST" >
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name" aria-describedby="movie name">
+
+            </div>
+
+
+            <div class="mb-3">
+                <label for="releaseDate" class="form-label">Release Date</label>
+                <input type="date" class="form-control" id="releaseDate" name="date">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="genre">Genre</label>
+                <input type="text" class="form-control" id="genre" name="genre">
+
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="rating">Rating</label>
+                <input type="number" class="form-control" id="rating" name="rating" min="0" max="10">
+
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="trailerURL">Trailer URL </label>
+                <input type="url" class="form-control" id="trailerURL" name="trailerURL">
+
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Summary</span>
+                <textarea rows="10" name="summary" class="form-control" aria-label="With textarea" maxlength="200" minlength="15"></textarea>
+
+
+
+            </div>
+            <div class="input-group mb-3" >
+                <input  type="file" name="image" class="form-control" id="image" accept=".png , .jpeg, .jpg">
+                <label  class="input-group-text" for="inputGroupFile02">Upload Movie </label>
+            </div>
+          
+
+            <button type="submit" class="btn btn-primary">Add Movie</button>
+        </form>
+    </body>
+</html>
+
+
+    }
