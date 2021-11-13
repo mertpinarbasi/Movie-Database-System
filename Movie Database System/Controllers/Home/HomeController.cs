@@ -21,41 +21,6 @@ namespace Movie_Database_System.Controllers
 
         public IActionResult Index()
         {
-            // Azure Database Connection Test
-            try 
-            {
-                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
-                builder.DataSource = "movieappserver.database.windows.net";
-                builder.UserID = "turkay7879";
-                builder.Password = "s4msep!0l";
-                builder.InitialCatalog = "MovieAppDatabase";
-
-                using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
-                {
-                    // Create person table
-                    String sql = "SELECT * FROM [dbo].[Person]";
-
-                    using (SqlCommand command = new SqlCommand(sql, connection))
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                // reader.GetX() fonksiyonları, gelen row'un columnlarına karşılık geliyor
-                                // Person tablosu için reader.GetInt32(0)  --> Id
-                                //                     reader.GetString(1) --> Name vs.
-                                Console.WriteLine("Name: {0}, Surname: {1}", reader.GetString(1), reader.GetString(2));
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e) 
-            {
-                Console.WriteLine("An error occured with database querying");
-                Console.WriteLine(e);
-            }
             return View();
         }
 
