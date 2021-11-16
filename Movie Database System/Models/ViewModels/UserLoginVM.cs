@@ -8,13 +8,11 @@ namespace Movie_Database_System.Models.ViewModels
 {
     public class UserLoginVM
     {
-
-
-        [Required(ErrorMessage = "Username value can not be empty ")]
-        [StringLength(5, ErrorMessage = "Invalid username")]
+        [Required(ErrorMessage = "Please enter a username")]
+        [StringLength(20, MinimumLength = 5, ErrorMessage = "Username value must have a length between 5 and 20.")]
         public string username { get; set; }
-        [Required(ErrorMessage = "Please enter your surname")]
-        [StringLength(5, ErrorMessage = "Invalid password" )]
+        [Required(ErrorMessage = "Please enter a password")]
+        [StringLength(20, MinimumLength = 5, ErrorMessage = "Password value must have a length between 5 and 20.")]
         public string password { get; set; }
     }
 }

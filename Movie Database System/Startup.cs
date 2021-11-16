@@ -14,9 +14,11 @@ namespace Movie_Database_System
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public static IWebHostEnvironment hostEnvironment;
+        public Startup(IConfiguration configuration, IWebHostEnvironment _hostEnvironment)
         {
             Configuration = configuration;
+            hostEnvironment = _hostEnvironment;
         }
 
         public IConfiguration Configuration { get; }

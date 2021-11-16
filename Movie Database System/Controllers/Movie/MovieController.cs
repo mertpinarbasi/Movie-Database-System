@@ -23,22 +23,27 @@ namespace Movie_Database_System.Controllers.Movie
         public IActionResult AddMovie()
         {
             List<Director> directors = new List<Director>();
-            string sql = "SELECT Name, Surname, Age FROM  dbo.Director";
-            using (var connection = new SqlConnection(_config.GetValue<string>("ConnectionStrings:MovieAppDB").ToString()))
-            using (var command = new SqlCommand(sql, connection))
+            
+            try
             {
+                var connection = new SqlConnection(_config.GetValue<string>("ConnectionStrings:MovieAppDB").ToString());
+                var command = new SqlCommand("getAllDirectors", connection);
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
                 connection.Open();
-                using (SqlDataReader reader = command.ExecuteReader())
+                SqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        //Console.WriteLine("{0} {1} {2}", reader.GetString(0), reader.GetString(1), reader.GetInt32(2));
-                        
-                        directors.Add(new Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2)));
-                        
-                    }
-                    ViewData["DirectorList"] = directors;
+                    directors.Add(new Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2)));
                 }
+
+                ViewData["DirectorList"] = directors;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine("-------------------------");
+                Console.WriteLine(e.StackTrace);
             }
 
             return View();
@@ -55,8 +60,7 @@ namespace Movie_Database_System.Controllers.Movie
             Console.WriteLine(movieVM.image.OpenReadStream());
             try
             {
-                string filepath = Path.Combine("../../", movieVM.image.FileName);
-
+                string filepath = Path.Combine(Startup.hostEnvironment.ContentRootPath + "\\Data\\MovieImages", movieVM.image.FileName);
                 using (Stream filestream = new FileStream(filepath, FileMode.Create))
                 {
                     await movieVM.image.CopyToAsync(filestream);
