@@ -22,7 +22,8 @@ namespace Movie_Database_System.Controllers.Movie
 
         public IActionResult AddMovie()
         {
-            List<Director> directors = new List<Director>();
+            ViewData["checkboxFlag"] = " ";
+            List<Movie_Database_System.Models.Director> directors = new List<Movie_Database_System.Models.Director>();
             
             try
             {
@@ -34,7 +35,7 @@ namespace Movie_Database_System.Controllers.Movie
                 SqlDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    directors.Add(new Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2)));
+                    directors.Add(new Movie_Database_System.Models.Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2)));
                 }
 
                 ViewData["DirectorList"] = directors;
@@ -57,6 +58,14 @@ namespace Movie_Database_System.Controllers.Movie
             newMovie.movieId = 1;
             #endregion
 
+            if (ViewData["checkboxFlag"].ToString() == "Yes")
+            {
+                Console.WriteLine("OK");
+            }
+            else
+            {
+                Console.WriteLine("NOPE");
+            }
             Console.WriteLine(movieVM.image.OpenReadStream());
             try
             {
@@ -75,6 +84,10 @@ namespace Movie_Database_System.Controllers.Movie
             return Json(newMovie);
         }
 
-
+        public IActionResult AddMovieTest(string checkBox)
+        {
+            Console.WriteLine(checkBox);
+            return null;
+        }
     }
 }

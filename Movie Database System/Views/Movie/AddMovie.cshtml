@@ -14,19 +14,18 @@
             {
                 resize: none;
             }
-
-            
         </style>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     </head>
     <body>
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true">
+        </asp:ScriptManager>
         <form enctype="multipart/form-data" asp-action="AddMovie" asp-controller="Movie" method="POST">
             <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
                 <input type="text" class="form-control" id="name" name="name" aria-describedby="movie name">
-
             </div>
-
 
             <div class="mb-3">
                 <label for="releaseDate" class="form-label">Release Date</label>
@@ -51,8 +50,6 @@
                 <span class="input-group-text">Summary</span>
                 <textarea rows="10" name="summary" class="form-control" aria-label="With textarea" maxlength="200" minlength="15"></textarea>
 
-
-
             </div>
             <div class="input-group mb-3">
                 <input type="file" name="image" class="form-control" id="image" accept=".png , .jpeg, .jpg">
@@ -61,24 +58,37 @@
 
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                    Dropdown button
+                    Select a Director
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                    <li><a class="dropdown-item" href="#">Add Director</a></li>
                     @foreach (var item in ViewData["DirectorList"] as List<Director>)
                     {
                         <li class="dropdown-item">
-                            @item.name
+                            @item.name @item.surname - @item.age
                         </li>
                     }
                 </ul>
             </div>
 
-            <button type="submit" class="btn btn-primary">Add Movie</button>
+            <div class="mb-3" id="submitArea">
+                <button type="submit" class="btn btn-primary" id="addMovieBtn">Add Movie</button>
+
+                <asp:button type="button" runat="server" OnClick="checkChanged" class="btn btn-primary" name="addDirectorCheck" id="addDirectorCheck" autocomplete="off">DANDİK</asp:button>
+            </div>
         </form>
 
     </body>
 </html>
+ }
 
+ @functions {
+        private string isChecked = "No";
 
-    }
+        private string checkChanged() {
+            if (isChecked == "No") isChecked = "Yes";
+            else isChecked = "No";
+            ViewData["checkboxFlag"] = isChecked;
+            Console.WriteLine(isChecked);
+            return "checkChanged";
+        }
+ }
