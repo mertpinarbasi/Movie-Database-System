@@ -35,7 +35,7 @@ namespace Movie_Database_System.Controllers.Movie
                 SqlDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    directors.Add(new Movie_Database_System.Models.Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2)));
+                    directors.Add(new Movie_Database_System.Models.Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2), reader.GetInt32(3)));
                 }
 
                 ViewData["DirectorList"] = directors;
@@ -51,21 +51,15 @@ namespace Movie_Database_System.Controllers.Movie
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddMovie(Movie_Database_System.Models.ViewModels.AddMovieVM movieVM)
+        public async Task<IActionResult> AddMovie(Movie_Database_System.Models.ViewModels.AddMovieVM movieVM, Movie_Database_System.Models.ViewModels.AddDirectorVM directorVM)
         {
             #region implicit 
             Movie_Database_System.Models.Movie newMovie = movieVM;
+            Movie_Database_System.Models.Director newDirector = directorVM;
             newMovie.movieId = 1;
+            newDirector.id = 1;
             #endregion
 
-            if (ViewData["checkboxFlag"].ToString() == "Yes")
-            {
-                Console.WriteLine("OK");
-            }
-            else
-            {
-                Console.WriteLine("NOPE");
-            }
             Console.WriteLine(movieVM.image.OpenReadStream());
             try
             {
