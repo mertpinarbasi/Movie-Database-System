@@ -7,8 +7,6 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 
@@ -17,20 +15,10 @@ namespace Movie_Database_System
     public class Startup
     {
         public static IWebHostEnvironment hostEnvironment;
-        public static string databaseConnString, blobStorageConnString;
-
         public Startup(IConfiguration configuration, IWebHostEnvironment _hostEnvironment)
         {
             Configuration = configuration;
             hostEnvironment = _hostEnvironment;
-
-            string decryptionKey = Configuration.GetValue<string>("ConnectionStrings:DerAlteWürfeltNicht").ToString();
-
-            string encryptedConnStr = Configuration.GetValue<string>("ConnectionStrings:MovieAppDB").ToString();
-            databaseConnString = Movie_Database_System.ConnectionMgmt.DecryptString(decryptionKey, encryptedConnStr);
-
-            encryptedConnStr = Configuration.GetValue<string>("ConnectionStrings:MovieAppAzureBlobStorage").ToString();
-            blobStorageConnString = Movie_Database_System.ConnectionMgmt.DecryptString(decryptionKey, encryptedConnStr);
         }
 
         public IConfiguration Configuration { get; }
