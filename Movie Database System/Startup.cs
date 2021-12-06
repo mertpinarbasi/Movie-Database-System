@@ -15,10 +15,18 @@ namespace Movie_Database_System
     public class Startup
     {
         public static IWebHostEnvironment hostEnvironment;
+        public static string databaseConnStr, blobStorageConnStr;
         public Startup(IConfiguration configuration, IWebHostEnvironment _hostEnvironment)
         {
             Configuration = configuration;
             hostEnvironment = _hostEnvironment;
+
+            string decryptionKey = Configuration.GetValue<string>("ConnectionStrings:DerAlteWürfeltNicht").ToString();
+            string encryptedDbConnStr = Configuration.GetValue<string>("ConnectionStrings:MovieAppDB").ToString();
+            string encryptedBlobConnStr = Configuration.GetValue<string>("ConnectionStrings:MovieAppAzureBlobStorage").ToString();
+
+            databaseConnStr = Movie_Database_System.ConnectionMgmt.DecryptString(decryptionKey, encryptedDbConnStr);
+            blobStorageConnStr = Movie_Database_System.ConnectionMgmt.DecryptString(decryptionKey, encryptedBlobConnStr);
         }
 
         public IConfiguration Configuration { get; }
