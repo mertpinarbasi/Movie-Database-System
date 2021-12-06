@@ -25,11 +25,9 @@ namespace Movie_Database_System.Controllers.Movie
 
         public IActionResult AddMovie()
         {
-            ViewData["checkboxFlag"] = " ";
-
             try
             {
-                var connection = new SqlConnection(_config.GetValue<string>("ConnectionStrings:MovieAppDB").ToString());
+                var connection = new SqlConnection(Startup.databaseConnString);
                 var command = new SqlCommand("getAllDirectors", connection);
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
@@ -58,19 +56,31 @@ namespace Movie_Database_System.Controllers.Movie
             Movie_Database_System.Models.Movie newMovie = movieVM;
             Movie_Database_System.Models.Director newDirector = directorVM;
             string filePath = Startup.hostEnvironment.ContentRootPath + "\\Data\\MovieImages\\" + newMovie.image.FileName;
-            var connection = new SqlConnection(_config.GetValue<string>("ConnectionStrings:MovieAppDB").ToString());
+            var connection = new SqlConnection(Startup.databaseConnString);
 
             string uniqueBlobName = newMovie.image.FileName.Split(".")[0] + Guid.NewGuid().ToString() + "." + newMovie.image.FileName.Split(".")[1];
             BlobClient blobClient = new BlobClient(
-                connectionString: _config.GetValue<string>("ConnectionStrings:MovieAppAzureBlobStorage").ToString(),
+                connectionString: Startup.blobStorageConnString,
                 blobContainerName: "movieimages",
                 blobName: uniqueBlobName
             );
 
+            var directorCommand = new SqlCommand("getAllDirectors", connection);
+            directorCommand.CommandType = System.Data.CommandType.StoredProcedure;
+
+            connection.Open();
+            SqlDataReader directorReader = directorCommand.ExecuteReader();
+            while (directorReader.Read())
+            {
+                directors.Add(new Movie_Database_System.Models.Director(directorReader.GetString(0), directorReader.GetString(1), directorReader.GetInt32(2), directorReader.GetInt32(3)));
+            }
+            directorReader.Close();
+
             try
             {
+               
                 /* Upload movie image to Azure Blob Storage */
-                using(Stream filestream = new FileStream(filePath, FileMode.Create))
+                using (Stream filestream = new FileStream(filePath, FileMode.Create))
                 {
                     await movieVM.image.CopyToAsync(filestream);
                 }
@@ -84,7 +94,6 @@ namespace Movie_Database_System.Controllers.Movie
                 command.Parameters.Add("@summary", System.Data.SqlDbType.NVarChar).Value = newMovie.summary;
                 command.Parameters.Add("@pictureName", System.Data.SqlDbType.NVarChar).Value = uniqueBlobName;
 
-                connection.Open();
                 await command.ExecuteNonQueryAsync();
 
                 /* Upload director data if submitted director is a new one */
@@ -97,7 +106,7 @@ namespace Movie_Database_System.Controllers.Movie
                         break;
                     }
                 }
-
+                
                 if (!exists)
                 {
                     var command2 = new SqlCommand("addDirector", connection);
@@ -119,7 +128,6 @@ namespace Movie_Database_System.Controllers.Movie
                 command3.Parameters.Add("@age", System.Data.SqlDbType.Int).Value = newDirector.age;
 
                 int idDirector = -1;
-                connection.Open();
                 SqlDataReader reader = command3.ExecuteReader();
                 if (reader.Read())
                 {
@@ -129,7 +137,7 @@ namespace Movie_Database_System.Controllers.Movie
                 {
                     throw new Exception("New director wasn't found in database. Something went wrong!");
                 }
-                connection.Close();
+                reader.Close();
 
                 /* Get metadata id */
                 var command4 = new SqlCommand("getMovieMetadata", connection);
@@ -139,9 +147,8 @@ namespace Movie_Database_System.Controllers.Movie
                 command4.Parameters.Add("@summary", System.Data.SqlDbType.NVarChar).Value = newMovie.summary;
 
                 int idMeta = -1;
-                connection.Open();
                 SqlDataReader reader2 = command4.ExecuteReader();
-                if (reader.Read())
+                if (reader2.Read())
                 {
                     idMeta = reader2.GetInt32(0);
                 }
@@ -149,7 +156,7 @@ namespace Movie_Database_System.Controllers.Movie
                 {
                     throw new Exception("New metadata wasn't found in database. Something went wrong!");
                 }
-                connection.Close();
+                reader2.Close();
 
                 /* Add movie to database */
                 var command5 = new SqlCommand("addMovie", connection);
@@ -163,6 +170,9 @@ namespace Movie_Database_System.Controllers.Movie
                 command5.Parameters.Add("@metadataid", System.Data.SqlDbType.Int).Value = idMeta;
 
                 command5.ExecuteNonQuery();
+                connection.Close();
+
+                System.IO.File.Delete(filePath);
             }
             catch (Exception err)
             {
@@ -172,10 +182,5 @@ namespace Movie_Database_System.Controllers.Movie
             return Json(newMovie);
         }
 
-        public IActionResult AddMovieTest(string checkBox)
-        {
-            Console.WriteLine(checkBox);
-            return null;
-        }
     }
 }
