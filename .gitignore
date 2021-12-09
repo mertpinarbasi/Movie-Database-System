@@ -364,3 +364,4 @@ FodyWeavers.xsd
 *.jpeg
 *.jpg
 *.png
+.DS_Store

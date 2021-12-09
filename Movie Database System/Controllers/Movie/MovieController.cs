@@ -17,6 +17,20 @@ namespace Movie_Database_System.Controllers.Movie
         private IConfiguration _config;
         private List<Movie_Database_System.Models.Director> directors;
 
+        private string Separate(string filePath)
+        {
+            string output = "";
+            string[] folders = filePath.Split(';');
+
+            output += Path.DirectorySeparatorChar.ToString();
+            output += folders[0];
+            output += Path.DirectorySeparatorChar.ToString();
+            output += folders[1];
+            output += Path.DirectorySeparatorChar.ToString();
+
+            return output;
+        }
+
         public MovieController(IConfiguration config)
         {
             _config = config;
@@ -39,6 +53,7 @@ namespace Movie_Database_System.Controllers.Movie
                 }
 
                 ViewData["DirectorList"] = directors;
+                reader.Close();
             }
             catch (Exception e)
             {
@@ -54,8 +69,12 @@ namespace Movie_Database_System.Controllers.Movie
         public async Task<IActionResult> AddMovie(Movie_Database_System.Models.ViewModels.AddMovieVM movieVM, Movie_Database_System.Models.ViewModels.AddDirectorVM directorVM)
         {
             Movie_Database_System.Models.Movie newMovie = movieVM;
+            string summarySingleQuoted = newMovie.summary;
+            newMovie.summary = newMovie.summary.Replace("\'", "\'\'");
             Movie_Database_System.Models.Director newDirector = directorVM;
-            string filePath = Startup.hostEnvironment.ContentRootPath + "\\Data\\MovieImages\\" + newMovie.image.FileName;
+
+            string dataFolderPath = "Data;MovieImages";
+            string filePath = Startup.hostEnvironment.ContentRootPath + Separate(dataFolderPath) + newMovie.image.FileName;
             var connection = new SqlConnection(Startup.databaseConnStr);
 
             string uniqueBlobName = newMovie.image.FileName.Split(".")[0] + Guid.NewGuid().ToString() + "." + newMovie.image.FileName.Split(".")[1];
@@ -92,16 +111,22 @@ namespace Movie_Database_System.Controllers.Movie
                 command.Parameters.Add("@trailer", System.Data.SqlDbType.NVarChar, 50).Value = newMovie.trailerURL;
                 command.Parameters.Add("@summary", System.Data.SqlDbType.NVarChar).Value = newMovie.summary;
                 command.Parameters.Add("@pictureName", System.Data.SqlDbType.NVarChar).Value = uniqueBlobName;
+                command.Parameters.Add("@sum", System.Data.SqlDbType.NVarChar).Value = summarySingleQuoted;
+                command.Parameters.Add("@newMetaId", System.Data.SqlDbType.Int);
+                command.Parameters["@newMetaId"].Direction = System.Data.ParameterDirection.Output;
 
                 await command.ExecuteNonQueryAsync();
+                int idMeta = (int)command.Parameters["@newMetaId"].Value;
 
                 /* Upload director data if submitted director is a new one */
                 bool exists = false;
+                int idDirector = -1;
                 foreach (Movie_Database_System.Models.Director director in directors)
                 {
                     if (director.name == newDirector.name && director.surname == newDirector.surname && director.age == newDirector.age)
                     {
                         exists = true;
+                        idDirector = director.id;
                         break;
                     }
                 }
@@ -114,61 +139,37 @@ namespace Movie_Database_System.Controllers.Movie
                     command2.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.name;
                     command2.Parameters.Add("@surname", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.surname;
                     command2.Parameters.Add("@age", System.Data.SqlDbType.Int).Value = newDirector.age;
+                    command2.Parameters.Add("@newId", System.Data.SqlDbType.Int);
+                    command2.Parameters["@newId"].Direction = System.Data.ParameterDirection.Output;
 
                     command2.ExecuteNonQuery();
+                    idDirector = (int)command2.Parameters["@newId"].Value;
                 }
-
-                /* Get new (or existing) director's ID to add it to movie table with new movie (Foreign key) */
-                var command3 = new SqlCommand("getDirector", connection);
-
-                command3.CommandType = System.Data.CommandType.StoredProcedure;
-                command3.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.name;
-                command3.Parameters.Add("@surname", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.surname;
-                command3.Parameters.Add("@age", System.Data.SqlDbType.Int).Value = newDirector.age;
-
-                int idDirector = -1;
-                SqlDataReader reader = command3.ExecuteReader();
-                if (reader.Read())
-                {
-                    idDirector = reader.GetInt32(0);
-                }
-                else
-                {
-                    throw new Exception("New director wasn't found in database. Something went wrong!");
-                }
-                reader.Close();
-
-                /* Get metadata id */
-                var command4 = new SqlCommand("getMovieMetadata", connection);
-
-                command4.CommandType = System.Data.CommandType.StoredProcedure;
-                command4.Parameters.Add("@trailer", System.Data.SqlDbType.NVarChar, 50).Value = newMovie.trailerURL;
-                command4.Parameters.Add("@summary", System.Data.SqlDbType.NVarChar).Value = newMovie.summary;
-
-                int idMeta = -1;
-                SqlDataReader reader2 = command4.ExecuteReader();
-                if (reader2.Read())
-                {
-                    idMeta = reader2.GetInt32(0);
-                }
-                else
-                {
-                    throw new Exception("New metadata wasn't found in database. Something went wrong!");
-                }
-                reader2.Close();
 
                 /* Add movie to database */
-                var command5 = new SqlCommand("addMovie", connection);
+                var command3 = new SqlCommand("addMovie", connection);
 
-                command5.CommandType = System.Data.CommandType.StoredProcedure;
-                command5.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 30).Value = newMovie.name;
-                command5.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = newMovie.date;
-                command5.Parameters.Add("@genre", System.Data.SqlDbType.NVarChar, 15).Value = newMovie.genre;
-                command5.Parameters.Add("@rating", System.Data.SqlDbType.Float).Value = (float)newMovie.rating;
-                command5.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;
-                command5.Parameters.Add("@metadataid", System.Data.SqlDbType.Int).Value = idMeta;
+                command3.CommandType = System.Data.CommandType.StoredProcedure;
+                command3.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 30).Value = newMovie.name;
+                command3.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = newMovie.date;
+                command3.Parameters.Add("@genre", System.Data.SqlDbType.NVarChar, 15).Value = newMovie.genre;
+                command3.Parameters.Add("@rating", System.Data.SqlDbType.Float).Value = (float)newMovie.rating;
+                command3.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;
+                command3.Parameters.Add("@metadataid", System.Data.SqlDbType.Int).Value = idMeta;
+                command3.Parameters.Add("@newMovieId", System.Data.SqlDbType.Int);
+                command3.Parameters["@newMovieId"].Direction = System.Data.ParameterDirection.Output;
 
-                command5.ExecuteNonQuery();
+                command3.ExecuteNonQuery();
+                int newMovieId = (int)command3.Parameters["@newMovieId"].Value;
+
+                /* Update directedMovies table for the director with newly added movie */
+                var command4 = new SqlCommand("updateDirectedMovies", connection);
+
+                command4.CommandType = System.Data.CommandType.StoredProcedure;
+                command4.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;
+                command4.Parameters.Add("@movieid", System.Data.SqlDbType.Int).Value = newMovieId;
+
+                command4.ExecuteNonQuery();
 
                 connection.Close();
                 System.IO.File.Delete(filePath);
