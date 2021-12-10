@@ -17,5 +17,27 @@ namespace Movie_Database_System.Models
         public string trailerURL { get; set; }
         public string summary { get; set; }
         public IFormFile image { get; set; }
+
+        public Movie(int movieId, string name, string date, string genre, int rating)
+        {
+            this.movieId = movieId;
+            this.date = date;
+            this.name = name;
+            this.genre = genre;
+            this.rating = rating;
+        }
+
+
+        public Movie(string name, string date, string genre, int rating, string trailerURL, string summary, IFormFile image)
+        {
+            this.name = name;
+            this.date = date;
+            this.genre = genre;
+            this.rating = rating;
+            this.trailerURL = trailerURL;
+            this.summary = summary;
+            this.image = image;
+        }
     }
+
 }

@@ -64,8 +64,34 @@ namespace Movie_Database_System.Controllers.Movie
 
             return View();
         }
+        public IActionResult SearchMovie()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult SearchMovie(string movieName)
+        {
+            var connection = new SqlConnection(Startup.databaseConnStr);
+            var command = new SqlCommand("Search_Movie", connection);
+            List<Movie_Database_System.Models.Movie> movies = new List<Movie_Database_System.Models.Movie>();
+            List<String> movieNameList = new List<String>();
+            command.CommandType = System.Data.CommandType.StoredProcedure;
+            command.Parameters.Add("@searchInput", System.Data.SqlDbType.NVarChar).Value = movieName;
+            // Reading the data 
+            connection.Open();
+            SqlDataReader searchMovieReader = command.ExecuteReader();
+            while (searchMovieReader.Read())
+            {
+                //movies.Add(new Movie_Database_System.Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetString(2), searchMovieReader.GetString(3), searchMovieReader.GetInt32(4)));
+                movieNameList.Add(searchMovieReader.GetString(0));
+            }
+            searchMovieReader.Close();
+
+            return Json(movieNameList);
+        }
 
         [HttpPost]
+
         public async Task<IActionResult> AddMovie(Movie_Database_System.Models.ViewModels.AddMovieVM movieVM, Movie_Database_System.Models.ViewModels.AddDirectorVM directorVM)
         {
             Movie_Database_System.Models.Movie newMovie = movieVM;
@@ -98,7 +124,7 @@ namespace Movie_Database_System.Controllers.Movie
             try
             {
                 /* Upload movie image to Azure Blob Storage */
-                using(Stream filestream = new FileStream(filePath, FileMode.Create))
+                using (Stream filestream = new FileStream(filePath, FileMode.Create))
                 {
                     await movieVM.image.CopyToAsync(filestream);
                 }
@@ -114,10 +140,10 @@ namespace Movie_Database_System.Controllers.Movie
                 command.Parameters.Add("@sum", System.Data.SqlDbType.NVarChar).Value = summarySingleQuoted;
                 command.Parameters.Add("@newMetaId", System.Data.SqlDbType.Int);
                 command.Parameters["@newMetaId"].Direction = System.Data.ParameterDirection.Output;
-         
+
                 await command.ExecuteNonQueryAsync();
                 int idMeta = (int)command.Parameters["@newMetaId"].Value;
-                
+
                 /* Upload director data if submitted director is a new one */
                 bool exists = false;
                 int idDirector = -1;
@@ -179,7 +205,7 @@ namespace Movie_Database_System.Controllers.Movie
             {
                 return Json(err);
             }
-        
+
             return Json(newMovie);
         }
     }
