@@ -114,10 +114,10 @@ namespace Movie_Database_System.Controllers.Movie
                 command.Parameters.Add("@sum", System.Data.SqlDbType.NVarChar).Value = summarySingleQuoted;
                 command.Parameters.Add("@newMetaId", System.Data.SqlDbType.Int);
                 command.Parameters["@newMetaId"].Direction = System.Data.ParameterDirection.Output;
-
+         
                 await command.ExecuteNonQueryAsync();
                 int idMeta = (int)command.Parameters["@newMetaId"].Value;
-
+                
                 /* Upload director data if submitted director is a new one */
                 bool exists = false;
                 int idDirector = -1;
@@ -173,12 +173,13 @@ namespace Movie_Database_System.Controllers.Movie
 
                 connection.Close();
                 System.IO.File.Delete(filePath);
+
             }
             catch (Exception err)
             {
-                Console.WriteLine(err);
+                return Json(err);
             }
-
+        
             return Json(newMovie);
         }
     }

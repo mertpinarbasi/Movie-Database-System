@@ -72,7 +72,7 @@
                     @foreach (var item in ViewData["DirectorList"] as List<Director>)
                     {
                         <option id=@item.id.ToString()>
-                            @item.name,@item.surname,@item.age
+                            @item.name,@item.surname,@item.age    
                         </option>
                     }
                 </select>
@@ -99,12 +99,25 @@
             </div>
 
             <div class="mb-3" id="submitArea">
-                <button type="submit" class="btn btn-primary" id="addMovieBtn">Add Movie</button>
-                <input type="checkbox" onclick="setCheckboxStatus()" class="btn-check" name="addDirectorCheck" id="addDirectorCheck" autocomplete="off">
-                <label class="btn btn-outline-primary" for="addDirectorCheck">Director I'm looking for isn't here</label>
+                <div class="row">
+                    <div class="col">  
+                        <button type="submit" class="btn btn-primary" id="addMovieBtn">Add Movie</button>
+                    </div>
+                    <div class="col">
+                        <input type="checkbox" onclick="setCheckboxStatus()" class="btn-check" name="addDirectorCheck" id="addDirectorCheck" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="addDirectorCheck">Director I'm looking for isn't here</label>
+                    </div>
+                </div>
             </div>
 
         </form>
+
+        <div class="container">
+            <div class="col">
+                <div class="row"></div>
+                <div class="row"></div>
+            </div>
+        </div>
 
         <script type="text/javascript">
             document.getElementById("directorField").style.display = "none";
