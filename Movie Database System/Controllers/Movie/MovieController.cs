@@ -14,7 +14,6 @@ namespace Movie_Database_System.Controllers.Movie
 {
     public class MovieController : Controller
     {
-        private IConfiguration _config;
         private List<Movie_Database_System.Models.Director> directors;
 
         private string Separate(string filePath)
@@ -33,7 +32,6 @@ namespace Movie_Database_System.Controllers.Movie
 
         public MovieController(IConfiguration config)
         {
-            _config = config;
             directors = new List<Movie_Database_System.Models.Director>();
         }
 
