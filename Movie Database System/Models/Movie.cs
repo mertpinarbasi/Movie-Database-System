@@ -17,6 +17,7 @@ namespace Movie_Database_System.Models
         public string trailerURL { get; set; }
         public string summary { get; set; }
         public IFormFile image { get; set; }
+        public byte[] imageBinary { get; set; }
 
         public Movie(int movieId, string name, DateTime date, string genre, int rating)
         {
@@ -27,6 +28,13 @@ namespace Movie_Database_System.Models
             this.rating = rating;
         }
 
+        public Movie(string name, string genre, string summary, byte[] imageBinary)
+        {
+            this.name = name;
+            this.genre = genre;
+            this.summary = summary;
+            this.imageBinary = imageBinary;
+        }
 
         public Movie(string name, DateTime date, string genre, int rating, string trailerURL, string summary, IFormFile image)
         {

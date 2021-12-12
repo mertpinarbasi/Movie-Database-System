@@ -20,6 +20,29 @@ namespace Movie_Database_System.Controllers
 
         public IActionResult Index()
         {
+            List<Models.Movie> movieInfo = new List<Models.Movie>();
+
+            var connection = new SqlConnection(Startup.databaseConnStr);
+            try
+            {
+                var command = new SqlCommand("getTopThreeMovies", connection);
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                connection.Open();
+                SqlDataReader movieReader = command.ExecuteReader();
+                while (movieReader.Read())
+                {
+                    movieInfo.Add(new Models.Movie(movieReader.GetString(0), movieReader.GetString(1), movieReader.GetString(2), (byte[])movieReader[3]));
+                }
+                movieReader.Close();
+                connection.Close();
+            }
+            catch (Exception err)
+            {
+                return Json(err.ToString());
+            }
+
+            ViewData["MovieList"] = movieInfo;
             return View();
         }
 
