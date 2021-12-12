@@ -23,16 +23,13 @@ namespace Movie_Database_System.Models.ViewModels
         {
             return new Movie
             (
-
-                 movieModel.name,
-                  movieModel.date,
-                 movieModel.genre,
-               movieModel.rating,
-                 movieModel.trailerURL,
+                movieModel.name,
+                DateTime.Parse(movieModel.date),
+                movieModel.genre,
+                movieModel.rating,
+                movieModel.trailerURL,
                 movieModel.summary,
-                 movieModel.image
-
-
+                movieModel.image
             );
         }
 

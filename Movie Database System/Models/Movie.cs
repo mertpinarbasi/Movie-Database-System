@@ -10,7 +10,7 @@ namespace Movie_Database_System.Models
     {
         public int movieId { get; set; }
         public string name { get; set; }
-        public string date { get; set; }
+        public DateTime date { get; set; }
         public string genre { get; set; }
 
         public int rating { get; set; }
@@ -18,7 +18,7 @@ namespace Movie_Database_System.Models
         public string summary { get; set; }
         public IFormFile image { get; set; }
 
-        public Movie(int movieId, string name, string date, string genre, int rating)
+        public Movie(int movieId, string name, DateTime date, string genre, int rating)
         {
             this.movieId = movieId;
             this.date = date;
@@ -28,7 +28,7 @@ namespace Movie_Database_System.Models
         }
 
 
-        public Movie(string name, string date, string genre, int rating, string trailerURL, string summary, IFormFile image)
+        public Movie(string name, DateTime date, string genre, int rating, string trailerURL, string summary, IFormFile image)
         {
             this.name = name;
             this.date = date;

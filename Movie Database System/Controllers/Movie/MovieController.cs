@@ -71,8 +71,8 @@ namespace Movie_Database_System.Controllers.Movie
         {
             var connection = new SqlConnection(Startup.databaseConnStr);
             var command = new SqlCommand("Search_Movie", connection);
-            List<Movie_Database_System.Models.Movie> movies = new List<Movie_Database_System.Models.Movie>();
-            List<String> movieNameList = new List<String>();
+            List<Movie_Database_System.Models.Movie> movies = new List<Models.Movie>();
+
             command.CommandType = System.Data.CommandType.StoredProcedure;
             command.Parameters.Add("@searchInput", System.Data.SqlDbType.NVarChar).Value = movieName;
             // Reading the data 
@@ -80,12 +80,11 @@ namespace Movie_Database_System.Controllers.Movie
             SqlDataReader searchMovieReader = command.ExecuteReader();
             while (searchMovieReader.Read())
             {
-                //movies.Add(new Movie_Database_System.Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetString(2), searchMovieReader.GetString(3), searchMovieReader.GetInt32(4)));
-                movieNameList.Add(searchMovieReader.GetString(0));
+                movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4))));
             }
             searchMovieReader.Close();
 
-            return Json(movieNameList);
+            return Json(movies);
         }
 
         [HttpPost]
@@ -175,7 +174,7 @@ namespace Movie_Database_System.Controllers.Movie
 
                 command3.CommandType = System.Data.CommandType.StoredProcedure;
                 command3.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 30).Value = newMovie.name;
-                command3.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = newMovie.date;
+                command3.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = newMovie.date.ToShortDateString().Replace('/','-');
                 command3.Parameters.Add("@genre", System.Data.SqlDbType.NVarChar, 15).Value = newMovie.genre;
                 command3.Parameters.Add("@rating", System.Data.SqlDbType.Float).Value = (float)newMovie.rating;
                 command3.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;

@@ -29,9 +29,42 @@
                     <input asp-for="actorAge" type="number" class="form-control" id="actorAge" name="actorAge" min="18" max="110">
                 </div>
 
+                <div class="mb-3">
+                    <span class="fs-4">Select movie this actor took a role in: </span>
+                    <div class="dropdown">
+                        <select id="movieList" onchange="setChosenMovie()">
+                            <option value="-2">-- Select a Movie --</option>
+                            @foreach (var item in ViewData["MovieList"] as List<Movie_Database_System.Models.Movie>)
+                            {
+                                <option id=@item.movieId.ToString() value=@item.movieId.ToString()>
+                                    @item.name, @item.date.ToShortDateString()  
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div id="movieInfoField">
+                      <input type="text" class="form-control" id="chosenMovie" name="chosenMovie" required>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Add Actor</button>
             </form>
-
         </body>
     </html>
+    <script type="text/javascript">
+        document.getElementById("movieInfoField").style.display = "none";
+
+        const setChosenMovie = () => {
+            var selectedMovie = document.getElementById("movieList").value;
+
+            if (selectedMovie == "-2") {
+                alert("Please select a movie from the list");
+            }
+            else {
+                document.querySelector('input[name="chosenMovie"]').value = new String(selectedMovie); 
+                document.querySelector('input[name="chosenMovie"]').readOnly = true;
+            }
+        }
+    </script>
 }
