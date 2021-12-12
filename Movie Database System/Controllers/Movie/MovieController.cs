@@ -80,11 +80,21 @@ namespace Movie_Database_System.Controllers.Movie
             SqlDataReader searchMovieReader = command.ExecuteReader();
             while (searchMovieReader.Read())
             {
-                movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4))));
+                try
+                {
+
+
+                    movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4)), searchMovieReader.GetString(5), searchMovieReader.GetString(6), (byte[])searchMovieReader[7]));
+                }
+                catch (Exception e)
+                {
+                    return Json(e);
+                }
             }
             searchMovieReader.Close();
+            ViewBag.movieResults = movies;
 
-            return Json(movies);
+            return View();
         }
 
         [HttpPost]
@@ -174,7 +184,7 @@ namespace Movie_Database_System.Controllers.Movie
 
                 command3.CommandType = System.Data.CommandType.StoredProcedure;
                 command3.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 30).Value = newMovie.name;
-                command3.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = newMovie.date.ToShortDateString().Replace('/','-');
+                command3.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = newMovie.date.ToShortDateString().Replace('/', '-');
                 command3.Parameters.Add("@genre", System.Data.SqlDbType.NVarChar, 15).Value = newMovie.genre;
                 command3.Parameters.Add("@rating", System.Data.SqlDbType.Float).Value = (float)newMovie.rating;
                 command3.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;

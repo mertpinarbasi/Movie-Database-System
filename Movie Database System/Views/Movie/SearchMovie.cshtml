@@ -19,6 +19,32 @@
             <input name="movieName" type="text" class="form-control me-2" type="search" placeholder="Search" id="movieName" aria-label="Search Movie">
             <button class="btn btn-primary" id="search-button" type="submit">Search</button>
         </form>
+        <div class="row">
+            @if (ViewBag.movieResults != null)
+            {
+                @foreach (var movie in ViewBag.movieResults)
+                {
+                    <div class="col-md-4">
+                        <p class="text-center">@movie.name</p>
+                        <div class="card">
+                            <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
+                            <div>
+                                <span class="badge badge-primary"> Ratings @movie.rating</span>
+                                <span class="badge badge-primary">@movie.genre</span>
+                                <span class="badge badge-primary">@movie.date</span>
+
+                                <span class="badge badge-primary">
+                                    <a href=@movie.trailerURL>Trailer Link</a>
+                                </span>
+                                <div class="card-body">
+                                    <p class="card-text">@movie.summary</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
     </div>
 
 </body>
@@ -27,7 +53,7 @@
     const searchInput = document.getElementById('movieName');
     searchButton.addEventListener('click', () => {
     const inputValue = searchInput.value;
-     alert(inputValue);
+
     });
 </script>
 
