@@ -1,0 +1,40 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Movie_Database_System.Models.Movie
+@{
+    Movie newMovie = (Movie)ViewData["NewMovie"];
+}
+@{
+    <header>
+        <style>
+            .centerContent {
+                display: flex;
+                justify-content: center;
+            }
+
+            #cardSubText {
+                width: 20%;
+            }
+        </style>
+    </header>
+    <h1 class="display-6 text-center">Movie Added Successfully</h1>
+    <div class="container centerContent">
+        <div class="card" style="width: 36rem;">
+            <img src="@ViewData["ImageSrc"]" class="card-img-top" alt="New Movie Image">
+            <div class="card-body">
+                <h3 class="card-title text-center">@newMovie.name</h3>
+                <div class="centerContent">
+                    <h6 class="card-subtitle mb-2 btn-sm btn-primary text-center" id="cardSubText">@newMovie.genre</h6>
+                </div>
+                <p class="card-text text-center">@newMovie.summary</p>
+                <div class="row">
+                    <div class="col centerContent">
+                        <a asp-controller="Movie" asp-action="AddMovie" class="btn btn-primary">Add Another Movie</a>
+                    </div>
+                    <div class="col centerContent">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Go Homepage</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
