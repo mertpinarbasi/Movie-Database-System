@@ -13,4 +13,7 @@
   <ItemGroup>
     <Folder Include="Data\MovieImages\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="bootstrap" />
+  </ItemGroup>
 </Project>

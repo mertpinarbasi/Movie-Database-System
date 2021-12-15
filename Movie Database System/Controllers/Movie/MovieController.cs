@@ -210,7 +210,8 @@ namespace Movie_Database_System.Controllers.Movie
             }
             catch (Exception err)
             {
-                return Json(err);
+                Console.WriteLine(err.ToString());
+                return Json(err.ToString());
             }
 
             return Json(newMovie);
