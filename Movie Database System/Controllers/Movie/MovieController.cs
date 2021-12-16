@@ -223,7 +223,11 @@ namespace Movie_Database_System.Controllers.Movie
                 return Json(err.ToString());
             }
 
-            ViewData["ImageSrc"] = "~/Data/MovieImages/" + movieVM.image.FileName;
+            using (var ms = new MemoryStream())
+            {
+                await newMovie.image.CopyToAsync(ms);
+                newMovie.imageBinary = ms.ToArray();
+            }
             ViewData["NewMovie"] = newMovie;
             return View();
         }

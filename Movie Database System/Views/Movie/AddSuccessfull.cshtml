@@ -19,7 +19,7 @@
     <h1 class="display-6 text-center">Movie Added Successfully</h1>
     <div class="container centerContent">
         <div class="card" style="width: 36rem;">
-            <img src="@ViewData["ImageSrc"]" class="card-img-top" alt="New Movie Image">
+            <img src="data:image/JPG;base64,@Convert.ToBase64String(newMovie.imageBinary, 0, newMovie.imageBinary.Length)" class="card-img-top" alt="New Movie Image">
             <div class="card-body">
                 <h3 class="card-title text-center">@newMovie.name</h3>
                 <div class="centerContent">
