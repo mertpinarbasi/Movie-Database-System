@@ -95,6 +95,36 @@ namespace Movie_Database_System.Controllers.Movie
             return View();
         }
 
+        public IActionResult GetMovie(int id)
+        {
+            var connection = new SqlConnection(Startup.databaseConnStr);
+            var command = new SqlCommand("GetMovie", connection);
+            command.CommandType = System.Data.CommandType.StoredProcedure;
+            command.Parameters.Add("@movieId", System.Data.SqlDbType.Int).Value = id;
+            Models.Movie selectedMovie = null;
+            Models.Director selectedDirector = null;
+            Models.Actor selectedActor = null;
+            connection.Open();
+            try
+            {
+                SqlDataReader getMovieReader = command.ExecuteReader();
+                getMovieReader.Read();
+                selectedMovie = (new Models.Movie(getMovieReader.GetInt32(0), getMovieReader.GetString(1), getMovieReader.GetDateTime(2), getMovieReader.GetString(3), Convert.ToInt32(getMovieReader.GetDouble(4)), getMovieReader.GetString(5), getMovieReader.GetString(6), (byte[])getMovieReader[7], getMovieReader.GetInt32(8)));
+                selectedDirector = (new Models.Director(getMovieReader.GetString(9), getMovieReader.GetString(10), getMovieReader.GetInt32(11)));
+                selectedActor = (new Models.Actor(getMovieReader.GetString(12), getMovieReader.GetString(13), getMovieReader.GetInt32(14)));
+                getMovieReader.Close();
+                ViewData["Movie"] = selectedMovie;
+                ViewData["Director"] = selectedDirector;
+                ViewData["Actor"] = selectedActor;
+                return View();
+
+            }
+            catch (Exception ex)
+            {
+                return Json(ex.ToString());
+            }
+
+        }
         [HttpPost]
         public async Task<IActionResult> AddSuccessfull(Movie_Database_System.Models.ViewModels.AddMovieVM movieVM, Movie_Database_System.Models.ViewModels.AddDirectorVM directorVM)
         {

@@ -1,0 +1,71 @@
+﻿@{
+    Movie_Database_System.Models.Movie movie = ViewData["Movie"] as Movie_Database_System.Models.Movie;
+    Movie_Database_System.Models.Director director = ViewData["Director"] as Movie_Database_System.Models.Director;
+    Movie_Database_System.Models.Actor actor = ViewData["Actor"] as Movie_Database_System.Models.Actor;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class=container-fluid>
+
+
+
+        <div class="row">
+
+
+            <div class="col-md-4">
+                <p class="text-center">@movie.name</p>
+                <div class="card">
+                    <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
+                    <div style="display : flex ;justify-content:space-between; margin:8px">
+
+                        <span style="margin : 1px" class="badge rounded-pill bg-dark ">@movie.rating ⭐</span>
+                        <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.genre</span>
+                        <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.date.ToShortDateString()</span>
+
+                    </div>
+
+
+                    <div class="card-body">
+                        <p class="card-text">@movie.summary</p>
+                        <div style="display:flex ; justify-content:space-evenly">
+
+                            <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
+                            <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
+
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="card-text">@director.name</p>
+                        <div style="display:flex ; justify-content:space-evenly">
+
+                            <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
+                            <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
+
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="card-text">@actor.name,@actor.surname</p>
+                        <div style="display:flex ; justify-content:space-evenly">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+        </div>
+    </div>
+
+</body>
+</html>
