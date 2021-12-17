@@ -1,0 +1,57 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Movie_Database_System.Models.Movie
+@{
+    List<Movie> movieList = ViewData["MovieList"] as List<Movie>;
+    Director director = ViewData["Director"] as Director;
+}
+
+<style>
+    .centerContent {
+        display: flex;
+        justify-content: center;
+    }
+
+    .centerContent > h6 {
+        margin: 10px;
+    }
+
+
+</style>
+
+<div class="container">
+    <h1 class="text-center">Director Information</h1>
+
+    <section id="directorInformation">
+        <h2 class="fs-3">Name: <span class="fw-bold">@director.name</span></h2>
+        <h2 class="fs-3">Surname: <span class="fw-bold">@director.surname</span></h2>
+        <h2 class="fs-3">Age: <span class="fw-bold">@director.age</span></h2>
+    </section>
+
+    <section id="directorMovies">
+        <div class="row">
+            @foreach (Movie movie in movieList)
+            {
+            <div class="col">
+                <div class="card-body">
+                    <h3 class="card-title text-center">@movie.name</h3>
+                    <div class="centerContent">
+                        <h6 class="card-subtitle mb-2 btn-sm btn-primary text-center" id="cardSubText">@movie.genre</h6>
+                        <h6 class="card-subtitle mb-2 btn-sm btn-primary text-center" id="cardSubText">@movie.rating</h6>
+                    </div>
+                    <p class="card-text text-center">@movie.summary</p>
+                    <div class="centerContent">
+                        <a asp-controller="Movie" asp-action="SearchMovie" asp-route-id="@movie.movieId" class="btn btn-primary">Movie Details</a>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </section>
+
+    <div class="row">
+        <div class="col centerContent">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Go Homepage</a>
+        </div>
+    </div>
+
+</div>

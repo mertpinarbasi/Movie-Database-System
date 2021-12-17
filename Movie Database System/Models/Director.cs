@@ -26,5 +26,12 @@ namespace Movie_Database_System.Models
             this.age = age;
             this.id = id;
         }
+
+        public Director()
+        {
+            this.name = "";
+            this.surname = "";
+            this.age = 0;
+        }
     }
 }
