@@ -82,7 +82,7 @@ namespace Movie_Database_System.Controllers.Movie
             {
                 try
                 {
-                    movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4)), searchMovieReader.GetString(5), searchMovieReader.GetString(6), (byte[])searchMovieReader[7]));
+                    movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4)), searchMovieReader.GetString(5), searchMovieReader.GetString(6), (byte[])searchMovieReader[7], searchMovieReader.GetInt32(8)));
                 }
                 catch (Exception e)
                 {
@@ -231,5 +231,7 @@ namespace Movie_Database_System.Controllers.Movie
             ViewData["NewMovie"] = newMovie;
             return View();
         }
+
+
     }
 }

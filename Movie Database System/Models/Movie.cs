@@ -8,6 +8,7 @@ namespace Movie_Database_System.Models
 {
     public class Movie
     {
+
         public int movieId { get; set; }
         public string name { get; set; }
         public DateTime date { get; set; }
@@ -18,6 +19,8 @@ namespace Movie_Database_System.Models
         public string summary { get; set; }
         public IFormFile image { get; set; }
         public byte[] imageBinary { get; set; }
+
+        public int directorId { get; set; }
 
         public Movie(int movieId, string name, DateTime date, string genre, int rating)
         {
@@ -35,7 +38,7 @@ namespace Movie_Database_System.Models
             this.summary = summary;
             this.imageBinary = imageBinary;
         }
-        public Movie(int movieId, string name, DateTime date, string genre, int rating, string trailerURL, string summary, byte[] imageBinary)
+        public Movie(int movieId, string name, DateTime date, string genre, int rating, string trailerURL, string summary, byte[] imageBinary, int directorId)
         {
             this.movieId = movieId;
             this.name = name;
@@ -45,6 +48,7 @@ namespace Movie_Database_System.Models
             this.trailerURL = trailerURL;
             this.summary = summary;
             this.imageBinary = imageBinary;
+            this.directorId = directorId;
         }
 
         public Movie(string name, DateTime date, string genre, int rating, string trailerURL, string summary, IFormFile image)

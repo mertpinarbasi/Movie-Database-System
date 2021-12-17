@@ -36,6 +36,7 @@
                                 </span>
                                 <div class="card-body">
                                     <p class="card-text">@movie.summary</p>
+                                    <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-xs">Get Director Details</a>
                                 </div>
                             </div>
                         </div>
