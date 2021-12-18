@@ -1,0 +1,18 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Movie_Database_System.Models.Actor
+@{
+    List<Actor> actors = ViewData["actorsInMovie"] as List<Actor>;
+    String movieName = ViewData["movieName"] as String;
+}
+
+<h1 class="text-center">Actors in @movieName</h1>
+
+<ul>
+    @foreach (Actor actor in actors)
+    {
+        <li>
+            @actor.name @actor.surname
+            <a asp-controller="Actor" asp-action="GetActor" asp-route-id="@actor.id" role="button" class="btn btn-secondary btn-md">Details</a>
+        </li>
+    }
+</ul>

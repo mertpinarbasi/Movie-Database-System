@@ -148,120 +148,206 @@ namespace Movie_Database_System.Controllers.Movie
 
             Movie_Database_System.Models.Director newDirector = directorVM;
 
-            string dataFolderPath = "Data;MovieImages";
-            string filePath = Startup.hostEnvironment.ContentRootPath + Separate(dataFolderPath) + newMovie.image.FileName;
-            var connection = new SqlConnection(Startup.databaseConnStr);
-
-            string uniqueBlobName = newMovie.image.FileName.Split(".")[0] + Guid.NewGuid().ToString() + "." + newMovie.image.FileName.Split(".")[1];
-            BlobClient blobClient = new BlobClient(
-                connectionString: Startup.blobStorageConnStr,
-                blobContainerName: "movieimages",
-                blobName: uniqueBlobName
-            );
-
-            var directorCommand = new SqlCommand("getAllDirectors", connection);
-            directorCommand.CommandType = System.Data.CommandType.StoredProcedure;
-
-            connection.Open();
-            SqlDataReader directorReader = directorCommand.ExecuteReader();
-            while (directorReader.Read())
+            if (ModelState.IsValid)
             {
-                directors.Add(new Movie_Database_System.Models.Director(directorReader.GetString(0), directorReader.GetString(1), directorReader.GetInt32(2), directorReader.GetInt32(3)));
+                string dataFolderPath = "Data;MovieImages";
+                string filePath = Startup.hostEnvironment.ContentRootPath + Separate(dataFolderPath) + newMovie.image.FileName;
+                var connection = new SqlConnection(Startup.databaseConnStr);
+
+                /* Check if registered movie already exists */
+                List<Models.Movie> allMovies = new List<Models.Movie>();
+                bool movieExists = false;
+                int newMovieId = -1;
+                var movieCommand = new SqlCommand("getAllMovieInfo", connection);
+                movieCommand.CommandType = System.Data.CommandType.StoredProcedure;
+
+                try
+                {
+                    connection.Open();
+                    SqlDataReader movieReader = movieCommand.ExecuteReader();
+                    while (movieReader.Read())
+                    {
+                        allMovies.Add(new Models.Movie(movieReader.GetInt32(0), movieReader.GetString(1), movieReader.GetDateTime(2), movieReader.GetString(3), (int)movieReader.GetDouble(4)));
+                    }
+                    movieReader.Close();
+
+                    foreach (Models.Movie movie in allMovies)
+                    {
+                        if (movie.name == newMovie.name && movie.date.ToShortDateString() == dateAsStr.Replace('/', '.') && movie.genre == newMovie.genre && movie.rating == newMovie.rating)
+                        {
+                            movieExists = true;
+                            newMovieId = movie.movieId;
+                            break;
+                        }
+                    }
+                }
+                catch (Exception err)
+                {
+                    return Json(err.ToString());
+                }
+
+                if (!movieExists)
+                {
+                    string uniqueBlobName = newMovie.image.FileName.Split(".")[0] + Guid.NewGuid().ToString() + "." + newMovie.image.FileName.Split(".")[1];
+                    BlobClient blobClient = new BlobClient(
+                        connectionString: Startup.blobStorageConnStr,
+                        blobContainerName: "movieimages",
+                        blobName: uniqueBlobName
+                    );
+
+                    var directorCommand = new SqlCommand("getAllDirectors", connection);
+                    directorCommand.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    try
+                    {
+                        SqlDataReader directorReader = directorCommand.ExecuteReader();
+                        while (directorReader.Read())
+                        {
+                            directors.Add(new Movie_Database_System.Models.Director(directorReader.GetString(0), directorReader.GetString(1), directorReader.GetInt32(2), directorReader.GetInt32(3)));
+                        }
+                        directorReader.Close();
+
+                        /* Upload movie image to Azure Blob Storage */
+                        using (Stream filestream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await movieVM.image.CopyToAsync(filestream);
+                        }
+                        await blobClient.UploadAsync(filePath);
+
+                        /* Upload movie metadata */
+                        var command = new SqlCommand("addMovieMetadata", connection);
+
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+                        command.Parameters.Add("@trailer", System.Data.SqlDbType.NVarChar, 50).Value = newMovie.trailerURL;
+                        command.Parameters.Add("@summary", System.Data.SqlDbType.NVarChar).Value = newMovie.summary;
+                        command.Parameters.Add("@pictureName", System.Data.SqlDbType.NVarChar).Value = uniqueBlobName;
+                        command.Parameters.Add("@sum", System.Data.SqlDbType.NVarChar).Value = summarySingleQuoted;
+                        command.Parameters.Add("@newMetaId", System.Data.SqlDbType.Int);
+                        command.Parameters["@newMetaId"].Direction = System.Data.ParameterDirection.Output;
+
+                        await command.ExecuteNonQueryAsync();
+                        int idMeta = (int)command.Parameters["@newMetaId"].Value;
+
+                        /* Upload director data if submitted director is a new one */
+                        bool exists = false;
+                        int idDirector = -1;
+                        foreach (Movie_Database_System.Models.Director director in directors)
+                        {
+                            if (director.name == newDirector.name && director.surname == newDirector.surname && director.age == newDirector.age)
+                            {
+                                exists = true;
+                                idDirector = director.id;
+                                break;
+                            }
+                        }
+
+                        if (!exists)
+                        {
+                            var command2 = new SqlCommand("addDirector", connection);
+
+                            command2.CommandType = System.Data.CommandType.StoredProcedure;
+                            command2.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.name;
+                            command2.Parameters.Add("@surname", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.surname;
+                            command2.Parameters.Add("@age", System.Data.SqlDbType.Int).Value = newDirector.age;
+                            command2.Parameters.Add("@newId", System.Data.SqlDbType.Int);
+                            command2.Parameters["@newId"].Direction = System.Data.ParameterDirection.Output;
+
+                            command2.ExecuteNonQuery();
+                            idDirector = (int)command2.Parameters["@newId"].Value;
+                        }
+
+                        /* Add movie to database */
+                        var command3 = new SqlCommand("addMovie", connection);
+
+                        command3.CommandType = System.Data.CommandType.StoredProcedure;
+                        command3.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 75).Value = newMovie.name;
+                        command3.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = dateAsStr;
+                        command3.Parameters.Add("@genre", System.Data.SqlDbType.NVarChar, 15).Value = newMovie.genre;
+                        command3.Parameters.Add("@rating", System.Data.SqlDbType.Float).Value = (float)newMovie.rating;
+                        command3.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;
+                        command3.Parameters.Add("@metadataid", System.Data.SqlDbType.Int).Value = idMeta;
+                        command3.Parameters.Add("@newMovieId", System.Data.SqlDbType.Int);
+                        command3.Parameters["@newMovieId"].Direction = System.Data.ParameterDirection.Output;
+
+                        command3.ExecuteNonQuery();
+                        newMovieId = (int)command3.Parameters["@newMovieId"].Value;
+
+                        /* Update directedMovies table for the director with newly added movie */
+                        var command4 = new SqlCommand("updateDirectedMovies", connection);
+
+                        command4.CommandType = System.Data.CommandType.StoredProcedure;
+                        command4.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;
+                        command4.Parameters.Add("@movieid", System.Data.SqlDbType.Int).Value = newMovieId;
+
+                        command4.ExecuteNonQuery();
+                        connection.Close();
+                    }
+                    catch (Exception err)
+                    {
+                        Console.WriteLine(err.ToString());
+                        return Json(err.ToString());
+                    }
+
+                    using (var ms = new MemoryStream())
+                    {
+                        await newMovie.image.CopyToAsync(ms);
+                        newMovie.imageBinary = ms.ToArray();
+                    }
+                    ViewData["NewMovie"] = newMovie;
+                    return View();
+                }
+
+                else
+                {
+                    return Content("This movie already exists!");
+                }
             }
-            directorReader.Close();
+
+            return Json(ModelState.Values.FirstOrDefault().Errors);
+        }
+
+        public IActionResult ActorsInMovie(int id)
+        {
+            String movieName = "";
+            List<Models.Actor> actorsInMovie = new List<Models.Actor>();
+            var connection = new SqlConnection(Startup.databaseConnStr);
 
             try
             {
-                /* Upload movie image to Azure Blob Storage */
-                using (Stream filestream = new FileStream(filePath, FileMode.Create))
-                {
-                    await movieVM.image.CopyToAsync(filestream);
-                }
-                await blobClient.UploadAsync(filePath);
-
-                /* Upload movie metadata */
-                var command = new SqlCommand("addMovieMetadata", connection);
-
+                var command = new SqlCommand("getActorsInMovie", connection);
                 command.CommandType = System.Data.CommandType.StoredProcedure;
-                command.Parameters.Add("@trailer", System.Data.SqlDbType.NVarChar, 50).Value = newMovie.trailerURL;
-                command.Parameters.Add("@summary", System.Data.SqlDbType.NVarChar).Value = newMovie.summary;
-                command.Parameters.Add("@pictureName", System.Data.SqlDbType.NVarChar).Value = uniqueBlobName;
-                command.Parameters.Add("@sum", System.Data.SqlDbType.NVarChar).Value = summarySingleQuoted;
-                command.Parameters.Add("@newMetaId", System.Data.SqlDbType.Int);
-                command.Parameters["@newMetaId"].Direction = System.Data.ParameterDirection.Output;
+                command.Parameters.Add("@movieId", System.Data.SqlDbType.Int).Value = id;
 
-                await command.ExecuteNonQueryAsync();
-                int idMeta = (int)command.Parameters["@newMetaId"].Value;
+                connection.Open();
+                SqlDataReader dataReader = command.ExecuteReader();
 
-                /* Upload director data if submitted director is a new one */
-                bool exists = false;
-                int idDirector = -1;
-                foreach (Movie_Database_System.Models.Director director in directors)
+                while (dataReader.Read())
                 {
-                    if (director.name == newDirector.name && director.surname == newDirector.surname && director.age == newDirector.age)
-                    {
-                        exists = true;
-                        idDirector = director.id;
-                        break;
-                    }
+                    movieName = dataReader.GetString(0);
+                    Models.Actor actor = new Models.Actor();
+                    actor.name = dataReader.GetString(1);
+                    actor.surname = dataReader.GetString(2);
+                    actor.id = dataReader.GetInt32(3);
+                    actor.age = 0;
+
+                    actorsInMovie.Add(actor);
                 }
 
-                if (!exists)
-                {
-                    var command2 = new SqlCommand("addDirector", connection);
-
-                    command2.CommandType = System.Data.CommandType.StoredProcedure;
-                    command2.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.name;
-                    command2.Parameters.Add("@surname", System.Data.SqlDbType.NVarChar, 15).Value = newDirector.surname;
-                    command2.Parameters.Add("@age", System.Data.SqlDbType.Int).Value = newDirector.age;
-                    command2.Parameters.Add("@newId", System.Data.SqlDbType.Int);
-                    command2.Parameters["@newId"].Direction = System.Data.ParameterDirection.Output;
-
-                    command2.ExecuteNonQuery();
-                    idDirector = (int)command2.Parameters["@newId"].Value;
-                }
-
-                /* Add movie to database */
-                var command3 = new SqlCommand("addMovie", connection);
-
-                command3.CommandType = System.Data.CommandType.StoredProcedure;
-                command3.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 50).Value = newMovie.name;
-                command3.Parameters.Add("@date", System.Data.SqlDbType.NVarChar, 10).Value = dateAsStr;
-                command3.Parameters.Add("@genre", System.Data.SqlDbType.NVarChar, 15).Value = newMovie.genre;
-                command3.Parameters.Add("@rating", System.Data.SqlDbType.Float).Value = (float)newMovie.rating;
-                command3.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;
-                command3.Parameters.Add("@metadataid", System.Data.SqlDbType.Int).Value = idMeta;
-                command3.Parameters.Add("@newMovieId", System.Data.SqlDbType.Int);
-                command3.Parameters["@newMovieId"].Direction = System.Data.ParameterDirection.Output;
-
-                command3.ExecuteNonQuery();
-                int newMovieId = (int)command3.Parameters["@newMovieId"].Value;
-
-                /* Update directedMovies table for the director with newly added movie */
-                var command4 = new SqlCommand("updateDirectedMovies", connection);
-
-                command4.CommandType = System.Data.CommandType.StoredProcedure;
-                command4.Parameters.Add("@directorid", System.Data.SqlDbType.Int).Value = idDirector;
-                command4.Parameters.Add("@movieid", System.Data.SqlDbType.Int).Value = newMovieId;
-
-                command4.ExecuteNonQuery();
+                dataReader.Close();
                 connection.Close();
+
             }
             catch (Exception err)
             {
-                Console.WriteLine(err.ToString());
+                Console.WriteLine(err);
                 return Json(err.ToString());
             }
 
-            using (var ms = new MemoryStream())
-            {
-                await newMovie.image.CopyToAsync(ms);
-                newMovie.imageBinary = ms.ToArray();
-            }
-            ViewData["NewMovie"] = newMovie;
+            ViewData["movieName"] = movieName;
+            ViewData["actorsInMovie"] = actorsInMovie;
+
             return View();
         }
-
 
     }
 }

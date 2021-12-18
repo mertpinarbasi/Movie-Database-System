@@ -21,5 +21,9 @@
             this.age = age;
             this.id = id;
         }
+
+        public Actor()
+        {
+        }
     }
 }

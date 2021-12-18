@@ -42,7 +42,7 @@
                         </div>
                     </div>
 
-                    <div class="card-body">
+                    @*<div class="card-body">
                         <p class="card-text">@director.name</p>
                         <div style="display:flex ; justify-content:space-evenly">
 
@@ -50,11 +50,11 @@
                             <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
 
                         </div>
-                    </div>
+                    </div>*@
 
                     <div class="card-body">
-                        <p class="card-text">@actor.name,@actor.surname</p>
                         <div style="display:flex ; justify-content:space-evenly">
+                            <a asp-controller="Movie" asp-action="ActorsInMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Played Actors</a>
                         </div>
                     </div>
                 </div>
