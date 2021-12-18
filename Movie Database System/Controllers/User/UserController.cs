@@ -89,7 +89,7 @@ namespace Movie_Database_System.Controllers.User
 
             try
             {
-                var connection = new SqlConnection(_config.GetValue<string>("ConnectionStrings:MovieAppDB").ToString());
+                var connection = new SqlConnection(Startup.databaseConnStr);
                 var command = new SqlCommand("login", connection);
 
                 command.CommandType = System.Data.CommandType.StoredProcedure;
@@ -146,7 +146,7 @@ namespace Movie_Database_System.Controllers.User
 
             try
             {
-                var connection = new SqlConnection(_config.GetValue<string>("ConnectionStrings:MovieAppDB").ToString());
+                var connection = new SqlConnection(Startup.databaseConnStr);
                 var command = new SqlCommand("login", connection);
 
                 command.CommandType = System.Data.CommandType.StoredProcedure;
