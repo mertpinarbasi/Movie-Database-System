@@ -12,15 +12,34 @@
 
 <div class="container">
     <div class="row">
-        @foreach (var movie in ViewData["MovieList"] as List<Movie_Database_System.Models.Movie>) {
-           <div class="col-md-4">
-            <div class="card">
-                <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <p class="card-text">@movie.summary</p>
+        @foreach (var movie in ViewData["TopThreeList"] as List<Movie_Database_System.Models.Movie>)
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <p class="card-text">@movie.summary</p>
+                    </div>
                 </div>
             </div>
-        </div> 
+        }
+    </div>
+
+    <div>
+        <h3>Last Added</h3>
+    </div>
+
+    <div class="row">
+        @foreach (var movie in ViewData["LatestThreeList"] as List<Movie_Database_System.Models.Movie>)
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <p class="card-text">@movie.summary</p>
+                    </div>
+                </div>
+            </div>
         }
     </div>
 </div>

@@ -20,11 +20,13 @@ namespace Movie_Database_System.Controllers
 
         public IActionResult Index()
         {
-            List<Models.Movie> movieInfo = new List<Models.Movie>();
+            List<Models.Movie> topThreeMovies = new List<Models.Movie>();
+            List<Models.Movie> latestThreeMovies = new List<Models.Movie>();
 
             var connection = new SqlConnection(Startup.databaseConnStr);
             try
             {
+                /* Retrieve top 3 movies from DB */
                 var command = new SqlCommand("getTopThreeMovies", connection);
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
@@ -32,9 +34,21 @@ namespace Movie_Database_System.Controllers
                 SqlDataReader movieReader = command.ExecuteReader();
                 while (movieReader.Read())
                 {
-                    movieInfo.Add(new Models.Movie(movieReader.GetString(0), movieReader.GetString(1), movieReader.GetString(2), (byte[])movieReader[3]));
+                    topThreeMovies.Add(new Models.Movie(movieReader.GetString(0), movieReader.GetString(1), movieReader.GetString(2), (byte[])movieReader[3]));
                 }
                 movieReader.Close();
+
+                /* Retrieve latest added 3 movies from DB */
+                var command2 = new SqlCommand("getLatestThreeMovies", connection);
+                command2.CommandType = System.Data.CommandType.StoredProcedure;
+
+                SqlDataReader movieReader2 = command2.ExecuteReader();
+                while (movieReader2.Read())
+                {
+                    latestThreeMovies.Add(new Models.Movie(movieReader2.GetString(0), movieReader2.GetString(1), movieReader2.GetString(2), (byte[])movieReader2[3]));
+                }
+                movieReader2.Close();
+
                 connection.Close();
             }
             catch (Exception err)
@@ -42,7 +56,8 @@ namespace Movie_Database_System.Controllers
                 return Json(err.ToString());
             }
 
-            ViewData["MovieList"] = movieInfo;
+            ViewData["TopThreeList"] = topThreeMovies;
+            ViewData["LatestThreeList"] = latestThreeMovies;
             return View();
         }
 
