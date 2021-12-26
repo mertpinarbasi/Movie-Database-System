@@ -45,5 +45,29 @@ namespace Movie_Database_System.Controllers.Director
             ViewData["MovieList"] = moviesOfDirector;
             return View();
         }
+
+
+        public IActionResult DeleteDirector(string id)
+        {
+            var connection = new SqlConnection(Startup.databaseConnStr);
+            try
+            {
+                var command = new SqlCommand("deleteDirector", connection);
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+                command.Parameters.Add("@DirectorId", System.Data.SqlDbType.Int).Value = Int32.Parse(id);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
+                ViewBag.Message = "Silme işlemi başarılı !";
+                return View();
+            }
+
+            catch (Exception err)
+            {
+                ViewBag.Error = err.Message;
+                return View();
+            }
+        }
     }
 }
