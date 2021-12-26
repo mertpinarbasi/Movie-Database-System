@@ -17,6 +17,14 @@
             <input name="movieName" type="text" class="form-control me-2" type="search" placeholder="Search" id="movieName" aria-label="Search Movie">
             <button class="btn btn-primary" id="search-button" type="submit">Search</button>
         </form>
+        @if (ViewBag.Error != null)
+        {
+            <h3 class="text-capitalize">ERROR </h3>
+            <div class="row justify-content-center align-align-items-center">
+                <p>Beklenmeyen bir hata oluştu ! </p>
+            </div>
+        }
+
         <div class="row">
             @if (ViewBag.movieResults != null)
             {
@@ -25,10 +33,10 @@
                     <div class="col-md-4">
                         <p class="text-center">@movie.name</p>
                         <div class="card">
-                            <img  src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
+                            <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
                             <div style="display : flex ;justify-content:space-between; margin:8px">
 
-                            <span style="margin : 1px" class="badge rounded-pill bg-dark ">@movie.rating ⭐</span>
+                                <span style="margin : 1px" class="badge rounded-pill bg-dark ">@movie.rating ⭐</span>
                                 <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.genre</span>
                                 <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.date.ToShortDateString()</span>
 
@@ -41,7 +49,7 @@
 
                                     <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
                                     <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
-                                   <a asp-controller="Movie" asp-action="GetMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Movie Details</a>
+                                    <a asp-controller="Movie" asp-action="GetMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Movie Details</a>
                                 </div>
                             </div>
                         </div>

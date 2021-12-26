@@ -13,7 +13,13 @@
 </head>
 <body>
     <div class=container-fluid>
-
+        @if (ViewBag.Error != null)
+        {
+            <h3 class="text-capitalize">ERROR </h3>
+            <div class="row justify-content-center align-align-items-center">
+                <p>Beklenmeyen bir hata oluştu ! </p>
+            </div>
+        }
 
 
         <div class="row">
@@ -46,11 +52,11 @@
                         <p class="card-text">@director.name</p>
                         <div style="display:flex ; justify-content:space-evenly">
 
-                            <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
-                            <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
+                        <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
+                        <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
 
                         </div>
-                    </div>*@
+                        </div>*@
 
                     <div class="card-body">
                         <div style="display:flex ; justify-content:space-evenly">

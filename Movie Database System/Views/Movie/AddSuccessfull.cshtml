@@ -1,4 +1,4 @@
-﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+﻿s@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model Movie_Database_System.Models.Movie
 @{
     Movie newMovie = (Movie)ViewData["NewMovie"];
@@ -16,6 +16,13 @@
             }
         </style>
     </header>
+    @if (ViewBag.Error != null)
+    {
+        <h3 class="text-capitalize">ERROR </h3>
+        <div class="row justify-content-center align-align-items-center">
+            <p>Beklenmeyen bir hata oluştu ! </p>
+        </div>
+    }
     <h1 class="display-6 text-center">Movie Added Successfully</h1>
     <div class="container centerContent">
         <div class="card" style="width: 36rem;">

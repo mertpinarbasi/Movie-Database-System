@@ -76,23 +76,33 @@ namespace Movie_Database_System.Controllers.Movie
             command.CommandType = System.Data.CommandType.StoredProcedure;
             command.Parameters.Add("@searchInput", System.Data.SqlDbType.NVarChar).Value = movieName;
             // Reading the data 
-            connection.Open();
-            SqlDataReader searchMovieReader = command.ExecuteReader();
-            while (searchMovieReader.Read())
-            {
-                try
-                {
-                    movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4)), searchMovieReader.GetString(5), searchMovieReader.GetString(6), (byte[])searchMovieReader[7], searchMovieReader.GetInt32(8)));
-                }
-                catch (Exception e)
-                {
-                    return Json(e);
-                }
-            }
-            searchMovieReader.Close();
-            ViewBag.movieResults = movies;
 
+            if (movieName != null)
+            {
+                connection.Open();
+                SqlDataReader searchMovieReader = command.ExecuteReader();
+
+
+                while (searchMovieReader.Read())
+                {
+                    try
+                    {
+                        movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4)), searchMovieReader.GetString(5), searchMovieReader.GetString(6), (byte[])searchMovieReader[7], searchMovieReader.GetInt32(8)));
+                    }
+                    catch (Exception e)
+                    {
+                        ViewBag.Error = e.Message;
+                        return View();
+                    }
+                }
+                searchMovieReader.Close();
+                ViewBag.movieResults = movies;
+
+                return View();
+            }
+            ViewBag.Error = "Arama alanı boş bırakılamaz !";
             return View();
+
         }
 
         public IActionResult GetMovie(int id)
@@ -121,7 +131,9 @@ namespace Movie_Database_System.Controllers.Movie
             }
             catch (Exception ex)
             {
-                return Json(ex.ToString());
+
+                ViewBag.Error = ex.Message;
+                return View();
             }
 
         }
@@ -181,9 +193,10 @@ namespace Movie_Database_System.Controllers.Movie
                         }
                     }
                 }
-                catch (Exception err)
+                catch (Exception e)
                 {
-                    return Json(err.ToString());
+                    ViewBag.Error = e.Message;
+                    return View();
                 }
 
                 if (!movieExists)
@@ -282,10 +295,10 @@ namespace Movie_Database_System.Controllers.Movie
                         command4.ExecuteNonQuery();
                         connection.Close();
                     }
-                    catch (Exception err)
+                    catch (Exception e)
                     {
-                        Console.WriteLine(err.ToString());
-                        return Json(err.ToString());
+                        ViewBag.Error = e;
+                        return View();
                     }
 
                     using (var ms = new MemoryStream())
@@ -337,10 +350,10 @@ namespace Movie_Database_System.Controllers.Movie
                 connection.Close();
 
             }
-            catch (Exception err)
+            catch (Exception e)
             {
-                Console.WriteLine(err);
-                return Json(err.ToString());
+                ViewBag.Error = e.Message;
+                return View();
             }
 
             ViewData["movieName"] = movieName;
