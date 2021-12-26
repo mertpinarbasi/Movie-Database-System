@@ -57,8 +57,8 @@ namespace Movie_Database_System.Controllers.Director
             }
             catch (Exception err)
             {
-                Console.WriteLine(err);
-                return Json(err.ToString());
+                ViewBag.Error = err.Message;
+                return View();
             }
 
             ViewData["Director"] = director;

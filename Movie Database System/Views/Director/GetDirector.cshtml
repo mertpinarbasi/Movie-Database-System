@@ -15,38 +15,54 @@
         margin: 10px;
     }
 
+    .error {
+        margin: 60px 0px;
 
+    }
 </style>
 
 <div class="container">
     <h1 class="text-center">Director Information</h1>
 
-    <section id="directorInformation">
-        <h2 class="fs-3">Name: <span class="fw-bold">@director.name</span></h2>
-        <h2 class="fs-3">Surname: <span class="fw-bold">@director.surname</span></h2>
-        <h2 class="fs-3">Age: <span class="fw-bold">@director.age</span></h2>
-    </section>
-
-    <section id="directorMovies">
-        <div class="row">
-            @foreach (Movie movie in movieList)
+    @if (ViewBag.Error != null)
             {
-            <div class="col">
-                <div class="card-body">
-                    <h3 class="card-title text-center">@movie.name</h3>
-                    <div class="centerContent">
-                        <h6 class="card-subtitle mb-2 btn-sm btn-primary text-center" id="cardSubText">@movie.genre</h6>
-                        <h6 class="card-subtitle mb-2 btn-sm btn-primary text-center" id="cardSubText">@movie.rating</h6>
-                    </div>
-                    <p class="card-text text-center">@movie.summary</p>
-                    <div class="centerContent">
-                        <a asp-controller="Movie" asp-action="SearchMovie" asp-route-id="@movie.movieId" class="btn btn-primary">Movie Details</a>
-                    </div>
-                </div>
-            </div>
+                <section class="row centerContent error">
+                    <h2 class="text-center fw-bolder">An Error Occured</h2>
+                    <h3 class="text-center">Something went wrong with retrieving Director information from database.
+                    Please try to refresh the page, or revisit again after a little while.</h3>
+                </section>
             }
-        </div>
-    </section>
+
+    @if (ViewBag.Error == null)
+    {
+        <section id="directorInformation">
+            <h2 class="fs-3">Name: <span class="fw-bold">@director.name</span></h2>
+            <h2 class="fs-3">Surname: <span class="fw-bold">@director.surname</span></h2>
+            <h2 class="fs-3">Age: <span class="fw-bold">@director.age</span></h2>
+        </section>
+
+        <section id="directorMovies">
+            <div class="row">
+                @foreach (Movie movie in movieList)
+                {
+                    <div class="col">
+                        <div class="card-body">
+                            <h3 class="card-title text-center">@movie.name</h3>
+                            <div class="centerContent">
+                                <h6 class="card-subtitle mb-2 btn-sm btn-primary text-center" id="cardSubText">@movie.genre</h6>
+                                <h6 class="card-subtitle mb-2 btn-sm btn-primary text-center" id="cardSubText">@movie.rating</h6>
+                            </div>
+                            <p class="card-text text-center">@movie.summary</p>
+                            <div class="centerContent">
+                                <a asp-controller="Movie" asp-action="GetMovie" asp-route-id="@movie.movieId" class="btn btn-primary">Movie Details</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
 
     <div class="row">
         <div class="col centerContent">
