@@ -55,9 +55,8 @@ namespace Movie_Database_System.Controllers.Movie
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("-------------------------");
-                Console.WriteLine(e.StackTrace);
+                ViewBag.Error = e.Message;
+                return View();
             }
 
             return View();
@@ -100,7 +99,7 @@ namespace Movie_Database_System.Controllers.Movie
 
                 return View();
             }
-            ViewBag.Error = "Arama alanı boş bırakılamaz !";
+            ViewBag.Error = "Arama alanı boş bırakılamaz!";
             return View();
 
         }
@@ -312,11 +311,13 @@ namespace Movie_Database_System.Controllers.Movie
 
                 else
                 {
-                    return Content("This movie already exists!");
+                    ViewBag.Error = "This movie already exists in database. Please go back to try to add another movie into database.";
+                    return View();
                 }
             }
 
-            return Json(ModelState.Values.FirstOrDefault().Errors);
+            ViewBag.Error = "Information given to add movie was incorrect. If you wish to add it again, please go back and fill the form correctly.";
+            return View();
         }
 
         public IActionResult ActorsInMovie(int id)
