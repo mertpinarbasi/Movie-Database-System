@@ -26,7 +26,7 @@ namespace Movie_Database_System.Controllers.Actor
                 connection.Open();
                 SqlDataReader movieReader = command.ExecuteReader();
                 while(movieReader.Read())
-                {
+                { 
                     movieInfo.Add(new Models.Movie(movieReader.GetInt32(0), movieReader.GetString(1), movieReader.GetDateTime(2), movieReader.GetString(3), Convert.ToInt32(movieReader.GetDouble(4))));
                 }
                 movieReader.Close();
@@ -34,7 +34,8 @@ namespace Movie_Database_System.Controllers.Actor
             }
             catch (Exception err)
             {
-                return Json(err.ToString());
+                ViewData["Error"] = err;
+                return View();
             }
 
             ViewData["MovieList"] = movieInfo;
@@ -107,7 +108,8 @@ namespace Movie_Database_System.Controllers.Actor
                 }
                 catch (Exception err)
                 {
-                    return Json(err.ToString());
+                    ViewData["Error"] = err;
+                    return View();
                 }
 
                 return Json(newActor);
@@ -148,8 +150,8 @@ namespace Movie_Database_System.Controllers.Actor
             }
             catch (Exception err)
             {
-                Console.WriteLine(err);
-                return Json(err.ToString());
+                ViewBag.error = err;
+                return View();
             }
 
             ViewData["Actor"] = actor;

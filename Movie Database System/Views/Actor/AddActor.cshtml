@@ -10,44 +10,57 @@
             <title>Add Actor</title>
         </head>
         <body>
-            <form enctype="multipart/form-data" asp-action="AddActor" asp-controller="Actor" method="POST">
-            
-                <div class="mb-3">
-                    <label for="actorName" class="form-label">Name</label>
-                    <input asp-for="actorName" type="text" class="form-control" id="actorName" name="actorName" aria-describedby="Actor Name">
+            @if (ViewData["Error"] != null)
+            {
+                <h2 class="text-center">Adding Actor</h2>
+                <br>
+                <h3 class="text-center">An Error Occured </h3>
+                <div class="text-center">
+                    <p>Something went wrong with adding actor in from database. Please try to refresh the page, or revisit again after a little while. </p>
                 </div>
+            }
+            else
+            {
+                <form enctype="multipart/form-data" asp-action="AddActor" asp-controller="Actor" method="POST">
 
-                <div class="mb-3">
-                    <label for="actorSurname" class="form-label">Surname</label>
-                    <input asp-for="actorSurname" type="text" class="form-control" id="actorSurname" name="actorSurname" aria-describedby="Actor Surname">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="actorAge">Age</label>
-                    <input asp-for="actorAge" type="number" class="form-control" id="actorAge" name="actorAge" min="18" max="110">
-                </div>
-
-                <div class="mb-3">
-                    <span class="fs-4">Select movie this actor took a role in: </span>
-                    <div class="dropdown">
-                        <select id="movieList" onchange="setChosenMovie()">
-                            <option value="-2">-- Select a Movie --</option>
-                            @foreach (var item in ViewData["MovieList"] as List<Movie_Database_System.Models.Movie>)
-                            {
-                                <option id=@item.movieId.ToString() value=@item.movieId.ToString()>
-                                    @item.name, @item.date.ToShortDateString()  
-                                </option>
-                            }
-                        </select>
+                    <div class="mb-3">
+                        <label for="actorName" class="form-label">Name</label>
+                        <input asp-for="actorName" type="text" class="form-control" id="actorName" name="actorName" aria-describedby="Actor Name">
                     </div>
-                </div>
 
-                <div id="movieInfoField">
-                      <input type="text" class="form-control" id="chosenMovie" name="chosenMovie" required>
-                </div>
+                    <div class="mb-3">
+                        <label for="actorSurname" class="form-label">Surname</label>
+                        <input asp-for="actorSurname" type="text" class="form-control" id="actorSurname" name="actorSurname" aria-describedby="Actor Surname">
+                    </div>
 
-                <button type="submit" class="btn btn-primary">Add Actor</button>
-            </form>
+                    <div class="mb-3">
+                        <label class="form-label" for="actorAge">Age</label>
+                        <input asp-for="actorAge" type="number" class="form-control" id="actorAge" name="actorAge" min="18" max="110">
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="fs-4">Select movie this actor took a role in: </span>
+                        <div class="dropdown">
+                            <select id="movieList" onchange="setChosenMovie()">
+                                <option value="-2">-- Select a Movie --</option>
+                                @foreach (var item in ViewData["MovieList"] as List<Movie_Database_System.Models.Movie>)
+                                {
+                                    <option id=@item.movieId.ToString() value=@item.movieId.ToString()>
+                                        @item.name, @item.date.ToShortDateString()
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="movieInfoField">
+                        <input type="text" class="form-control" id="chosenMovie" name="chosenMovie" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Add Actor</button>
+                </form>
+            }
+
         </body>
     </html>
     <script type="text/javascript">

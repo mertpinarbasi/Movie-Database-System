@@ -5,21 +5,35 @@
     Actor actor = ViewData["Actor"] as Actor;
 }
 
-<h1>@actor.name @actor.surname</h1>
+@if (ViewBag.Error != null)
+{
+    <h2 class="text-center">Actor Information</h2>
+    <br>
+    <h3 class="text-center">An Error Occured </h3>
+    <div class="text-center">
+        <p>Something went wrong with retrieving actor information from database. Please try to refresh the page, or revisit again after a little while. </p>
+    </div>
+}
 
-<h3>Age</h3>
+else
+{
 
-<div>
-    @actor.age
-</div>
+    <h1>@actor.name @actor.surname</h1>
 
-<h3>Played Movies</h3>
+    <h3>Age</h3>
 
-<ul>
-    @foreach (String movie in movies)
-    {
-        <li>
-            @movie
-        </li>
-    }
-</ul>
+    <div>
+        @actor.age
+    </div>
+
+    <h3>Played Movies</h3>
+
+    <ul>
+        @foreach (String movie in movies)
+        {
+            <li>
+                @movie
+            </li>
+        }
+    </ul>
+}
