@@ -245,5 +245,134 @@ namespace Movie_Database_System.Controllers.User
                 return RedirectToAction("Login", "User");
             }
         }
+
+        public IActionResult Privileges()
+        {
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                if (Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege"))) > 1)
+                {
+                    List<Models.User> normalUsers = new List<Models.User>();
+
+                    var connection = new SqlConnection(Startup.databaseConnStr);
+                    var command = new SqlCommand("getUsers", connection);
+                    command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    try
+                    {
+                        connection.Open();
+                        SqlDataReader reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            normalUsers.Add(new Models.User(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), " ", reader.GetInt32(4)));
+                        }
+                        reader.Close();
+                        connection.Close();
+
+                        if (TempData["Status"] != null)
+                        {
+                            ViewBag.Previous = TempData["Status"];
+                            TempData.Remove("Status");
+                        }
+                        ViewData["NormalUsers"] = normalUsers;
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                        return View();
+                    }
+                    catch (Exception)
+                    {
+                        ViewBag.Error = "Something went wrong while retrieving users. Please try to refresh page or try again a little while later.";
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                        return View();
+                    }
+                }
+                else
+                {
+                    ViewBag.Error = "You don't have authorization required to elevate a user's privileges.";
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    return View();
+                }
+            }
+            else
+            {
+                ViewBag.Error = "You don't have authorization required to elevate a user's privileges.";
+                return View();
+            }
+        }
+
+        public IActionResult SetAsAdmin(string id)
+        {
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                if (Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege"))) > 1)
+                {
+                    try
+                    {
+                        var connection = new SqlConnection(Startup.databaseConnStr);
+                        var command = new SqlCommand("SetUserAsAdmin", connection);
+
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+                        command.Parameters.Add("@userId", System.Data.SqlDbType.Int).Value = Int32.Parse(id);
+
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        connection.Close();
+
+                        TempData["Status"] = true;
+                        return RedirectToAction("Privileges", "User");
+                    }
+                    catch (Exception)
+                    {
+                        TempData["Status"] = false;
+                        return RedirectToAction("Privileges", "User");
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Login", "User");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+        }
+
+        public IActionResult SetAsNormal(string id)
+        {
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                if (Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege"))) > 1)
+                {
+                    try
+                    {
+                        var connection = new SqlConnection(Startup.databaseConnStr);
+                        var command = new SqlCommand("SetUserAsNormal", connection);
+
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+                        command.Parameters.Add("@userId", System.Data.SqlDbType.Int).Value = Int32.Parse(id);
+
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        connection.Close();
+
+                        TempData["Status"] = true;
+                        return RedirectToAction("Privileges", "User");
+                    }
+                    catch (Exception)
+                    {
+                        TempData["Status"] = false;
+                        return RedirectToAction("Privileges", "User");
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Login", "User");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+        }
     }
 }
