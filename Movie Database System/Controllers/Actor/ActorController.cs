@@ -1,18 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text.Json;
 
 namespace Movie_Database_System.Controllers.Actor
 {
     public class ActorController : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
-
         public IActionResult AddActor()
         {
             List<Models.Movie> movieInfo = new List<Models.Movie>();
@@ -39,6 +36,10 @@ namespace Movie_Database_System.Controllers.Actor
             }
 
             ViewData["MovieList"] = movieInfo;
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+            }
             return View();
         }
 
@@ -156,7 +157,10 @@ namespace Movie_Database_System.Controllers.Actor
 
             ViewData["Actor"] = actor;
             ViewData["Movies"] = moviesOfActor;
-
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+            }
             return View();
         }
 

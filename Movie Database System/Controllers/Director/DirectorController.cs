@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Movie_Database_System.Controllers.Director
@@ -43,29 +45,50 @@ namespace Movie_Database_System.Controllers.Director
 
             ViewData["Director"] = director;
             ViewData["MovieList"] = moviesOfDirector;
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+            }
             return View();
         }
 
-
         public IActionResult DeleteDirector(string id)
         {
-            var connection = new SqlConnection(Startup.databaseConnStr);
-            try
+            if (HttpContext.Session.GetString("_Username") != null)
             {
-                var command = new SqlCommand("deleteDirector", connection);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-                command.Parameters.Add("@DirectorId", System.Data.SqlDbType.Int).Value = Int32.Parse(id);
+                if (Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege"))) > 0)
+                {
+                    var connection = new SqlConnection(Startup.databaseConnStr);
+                    try
+                    {
+                        var command = new SqlCommand("deleteDirector", connection);
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+                        command.Parameters.Add("@DirectorId", System.Data.SqlDbType.Int).Value = Int32.Parse(id);
 
-                connection.Open();
-                command.ExecuteNonQuery();
-                connection.Close();
-                ViewBag.Message = "Silme işlemi başarılı !";
-                return View();
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        connection.Close();
+                        ViewBag.Message = "Silme işlemi başarılı !";
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                        return View();
+                    }
+
+                    catch (Exception err)
+                    {
+                        ViewBag.Error = err.Message;
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                        return View();
+                    }
+                }
+                else
+                {
+                    ViewBag.Error = "You don't have authorization required to delete a director and it's connected data.";
+                    return View();
+                }
             }
-
-            catch (Exception err)
+            else
             {
-                ViewBag.Error = err.Message;
+                ViewBag.Error = "You don't have authorization required to delete a director and it's connected data.";
                 return View();
             }
         }

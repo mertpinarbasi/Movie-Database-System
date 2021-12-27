@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Movie_Database_System.Models;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Movie_Database_System.Controllers
@@ -58,11 +60,24 @@ namespace Movie_Database_System.Controllers
 
             ViewData["TopThreeList"] = topThreeMovies;
             ViewData["LatestThreeList"] = latestThreeMovies;
+            if (TempData["Name"] != null)
+            {
+                ViewData["Name"] = TempData["Name"].ToString();
+                TempData.Remove("Name");
+            }
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+            }
             return View();
         }
 
         public IActionResult Privacy()
         {
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+            }
             return View();
         }
 

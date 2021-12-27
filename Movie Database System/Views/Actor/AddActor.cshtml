@@ -8,6 +8,11 @@
             <meta http-equiv="X-UA-Compatible" content="IE=edge">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Add Actor</title>
+            <style>
+                #AccessErrorMsg {
+                    margin: 60px 0px;
+                }
+            </style>
         </head>
         <body>
             @if (ViewData["Error"] != null)
@@ -19,7 +24,7 @@
                     <p>Something went wrong with adding actor in from database. Please try to refresh the page, or revisit again after a little while. </p>
                 </div>
             }
-            else
+            else if (ViewBag.Privilege != null && ViewBag.Privilege > 0)
             {
                 <form enctype="multipart/form-data" asp-action="AddActor" asp-controller="Actor" method="POST">
 
@@ -58,9 +63,13 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary">Add Actor</button>
-                </form>
+            </form>
             }
-
+            else if (ViewBag.Privilege == null || (ViewBag.Privilege != null && ViewBag.Privilege == 0))
+            {
+                <h1 class="text-center fs-1">Unauthorized Access</h1>
+                <h2 id="AccessErrorMsg" class="text-center fs-4">You have to be logged in and have admin privileges to view or use this page.</h2>
+            }
         </body>
     </html>
     <script type="text/javascript">

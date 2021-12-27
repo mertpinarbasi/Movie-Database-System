@@ -31,14 +31,23 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Login">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Movie" asp-action="AddMovie">AddMovie</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Movie" asp-action="SearchMovie">SearchMovie</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Actor" asp-action="AddActor">Add Actor</a>
-                        </li>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Movie" asp-action="SearchMovie">Search Movie</a>
+                        </li> 
+                        @if (ViewBag.Privilege != null && ViewBag.Privilege > 0)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Movie" asp-action="AddMovie">Add Movie</a>
+                            </li>
+                            <li class="nav-item"> 
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Actor" asp-action="AddActor">Add Actor</a>
+                            </li> 
+                        }
+                        @if (ViewBag.Privilege != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Logout">Log Out</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

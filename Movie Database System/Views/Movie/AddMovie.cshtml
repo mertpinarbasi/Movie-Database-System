@@ -7,7 +7,7 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
+        <title>Add Movie</title>
         <style>
             textarea {
                 resize: none;
@@ -43,130 +43,138 @@
                     </h3>
                 </section>
             }
+            else if (ViewBag.Privilege != null && ViewBag.Privilege > 0)
+            {
+                <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true">
+                </asp:ScriptManager>
+                <form enctype="multipart/form-data" asp-action="AddSuccessfull" asp-controller="Movie" method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" aria-describedby="movie name">
+                    </div>
 
-            <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true">
-            </asp:ScriptManager>
-            <form enctype="multipart/form-data" asp-action="AddSuccessfull" asp-controller="Movie" method="POST">
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" class="form-control" id="name" name="name" aria-describedby="movie name">
-                </div>
+                    <div class="mb-3">
+                        <label for="releaseDate" class="form-label">Release Date</label>
+                        <input type="date" class="form-control" id="releaseDate" name="date">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="genre">Genre</label>
+                        <input type="text" class="form-control" id="genre" name="genre">
 
-                <div class="mb-3">
-                    <label for="releaseDate" class="form-label">Release Date</label>
-                    <input type="date" class="form-control" id="releaseDate" name="date">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="genre">Genre</label>
-                    <input type="text" class="form-control" id="genre" name="genre">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="rating">Rating</label>
+                        <input type="number" class="form-control" id="rating" name="rating" min="0" max="10">
 
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="rating">Rating</label>
-                    <input type="number" class="form-control" id="rating" name="rating" min="0" max="10">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="trailerURL">Trailer URL </label>
+                        <input type="url" class="form-control" id="trailerURL" name="trailerURL">
 
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="trailerURL">Trailer URL </label>
-                    <input type="url" class="form-control" id="trailerURL" name="trailerURL">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Summary</span>
+                        <textarea rows="10" name="summary" class="form-control" aria-label="With textarea" maxlength="1000" minlength="15"></textarea>
 
-                </div>
-                <div class="input-group mb-3">
-                    <span class="input-group-text">Summary</span>
-                    <textarea rows="10" name="summary" class="form-control" aria-label="With textarea" maxlength="1000" minlength="15"></textarea>
+                    </div>
 
-                </div>
+                    <div class="input-group mb-3">
+                        <input type="file" name="image" class="form-control" id="image" accept=".png , .jpeg, .jpg">
+                        <label class="input-group-text" for="inputGroupFile02">Upload Movie </label>
+                    </div>
 
-                <div class="input-group mb-3">
-                    <input type="file" name="image" class="form-control" id="image" accept=".png , .jpeg, .jpg">
-                    <label class="input-group-text" for="inputGroupFile02">Upload Movie </label>
-                </div>
+                    <div class="dropdown">
+                        <select id="directorList" onchange="setChosenDirector()">
+                            <option value="-2">-- Select a Director --</option>
+                            @foreach (var item in ViewData["DirectorList"] as List<Director>)
+                            {
+                                <option id=@item.id.ToString()>
+                                    @item.name,@item.surname,@item.age
+                                </option>
+                            }
+                        </select>
 
-                <div class="dropdown">
-                    <select id="directorList" onchange="setChosenDirector()">
-                        <option value="-2">-- Select a Director --</option>
-                        @foreach (var item in ViewData["DirectorList"] as List<Director>)
+                    </div>
+
+                    <div class="mb-3" id="directorField">
+                        <div class="mb-3">
+                            <label for="directorName" class="form-label">Director Name</label>
+                            <input asp-for="directorName" type="text" class="form-control" id="directorName" name="directorName" aria-describedby="Director Name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="directorSurname" class="form-label">Director Surname</label>
+                            <input asp-for="directorSurname" type="text" class="form-control" id="directorSurname" name="directorSurname" aria-describedby="Director Surname" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="directorAge">Director Age</label>
+                            <input asp-for="directorAge" type="number" class="form-control" id="directorAge" name="directorAge" min="18" max="110" required>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="clearDirectorForm()">Clear Director Form</button>
+                    </div>
+
+                    <div class="mb-3" id="submitArea">
+                        @if (ViewBag.Error == null)
                         {
-                            <option id=@item.id.ToString()>
-                                @item.name,@item.surname,@item.age
-                            </option>
+                            <button type="submit" class="btn btn-primary" id="addMovieBtn">Add Movie</button>
                         }
-                    </select>
-
-                </div>
-
-                <div class="mb-3" id="directorField">
-                    <div class="mb-3">
-                        <label for="directorName" class="form-label">Director Name</label>
-                        <input asp-for="directorName" type="text" class="form-control" id="directorName" name="directorName" aria-describedby="Director Name" required>
+                        <input type="checkbox" onclick="setCheckboxStatus()" class="btn-check" name="addDirectorCheck" id="addDirectorCheck" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="addDirectorCheck">Director I'm looking for isn't here</label>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="directorSurname" class="form-label">Director Surname</label>
-                        <input asp-for="directorSurname" type="text" class="form-control" id="directorSurname" name="directorSurname" aria-describedby="Director Surname" required>
-                    </div>
+                </form>
 
-                    <div class="mb-3">
-                        <label class="form-label" for="directorAge">Director Age</label>
-                        <input asp-for="directorAge" type="number" class="form-control" id="directorAge" name="directorAge" min="18" max="110" required>
-                    </div>
+                <script type="text/javascript">document.getElementById("directorField").style.display = "none";
 
-                    <button type="button" class="btn btn-primary" onclick="clearDirectorForm()">Clear Director Form</button>
-                </div>
-
-                <div class="mb-3" id="submitArea">
-                    @if (ViewBag.Error == null)
-                    {
-                        <button type="submit" class="btn btn-primary" id="addMovieBtn">Add Movie</button>
+                    const setCheckboxStatus = () => {
+                        if (document.getElementById("directorField").style.display == "none") {
+                            document.getElementById("directorField").style.display = "block";
+                        }
+                        else {
+                            document.getElementById("directorField").style.display = "none";
+                        }
                     }
-                    <input type="checkbox" onclick="setCheckboxStatus()" class="btn-check" name="addDirectorCheck" id="addDirectorCheck" autocomplete="off">
-                    <label class="btn btn-outline-primary" for="addDirectorCheck">Director I'm looking for isn't here</label>
-                </div>
 
-            </form>
+                    const setChosenDirector = () => {
+                        var directors = document.getElementById("directorList");
+                        var selectedDirector = directors.value;
+                        if (selectedDirector == "-2") {
+                            alert("Please choose a valid director from list below.");
+                            clearDirectorForm();
+                        }
+                        else {
+                            const inputs = selectedDirector.split(",");
 
-            <script type="text/javascript">document.getElementById("directorField").style.display = "none";
+                            document.querySelector('input[name="directorName"]').value = new String(inputs[0]);
+                            document.querySelector('input[name="directorName"]').readOnly = true;
 
-                const setCheckboxStatus = () => {
-                    if (document.getElementById("directorField").style.display == "none") {
-                        document.getElementById("directorField").style.display = "block";
+                            document.querySelector('input[name="directorSurname"]').value = new String(inputs[1]);
+                            document.querySelector('input[name="directorSurname"]').readOnly = true;
+
+                            document.querySelector('input[name="directorAge"]').value = new Number(parseInt(inputs[2]));
+                            document.querySelector('input[name="directorAge"]').readOnly = true;
+                        }
                     }
-                    else {
-                        document.getElementById("directorField").style.display = "none";
-                    }
-                }
 
-                const setChosenDirector = () => {
-                    var directors = document.getElementById("directorList");
-                    var selectedDirector = directors.value;
-                    if (selectedDirector == "-2") {
-                        alert("Please choose a valid director from list below.");
-                        clearDirectorForm();
-                    }
-                    else {
-                        const inputs = selectedDirector.split(",");
+                    const clearDirectorForm = () => {
+                        document.getElementById("directorName").value = "";
+                        document.getElementById("directorName").readOnly = false;
 
-                        document.querySelector('input[name="directorName"]').value = new String(inputs[0]);
-                        document.querySelector('input[name="directorName"]').readOnly = true;
+                        document.getElementById("directorSurname").value = "";
+                        document.getElementById("directorSurname").readOnly = false;
 
-                        document.querySelector('input[name="directorSurname"]').value = new String(inputs[1]);
-                        document.querySelector('input[name="directorSurname"]').readOnly = true;
-
-                        document.querySelector('input[name="directorAge"]').value = new Number(parseInt(inputs[2]));
-                        document.querySelector('input[name="directorAge"]').readOnly = true;
-                    }
-                }
-
-                const clearDirectorForm = () => {
-                    document.getElementById("directorName").value = "";
-                    document.getElementById("directorName").readOnly = false;
-
-                    document.getElementById("directorSurname").value = "";
-                    document.getElementById("directorSurname").readOnly = false;
-
-                    document.getElementById("directorAge").value = null;
-                    document.getElementById("directorAge").readOnly = false;
-                }</script>
+                        document.getElementById("directorAge").value = null;
+                        document.getElementById("directorAge").readOnly = false;
+                    }</script>
+            }
+            else if (ViewBag.Privilege == null || (ViewBag.Privilege != null && ViewBag.Privilege == 0))
+            {
+                <h1 class="text-center fs-1">Unauthorized Access</h1>
+                <h2 class="text-center fs-4 error">You have to be logged in and have admin privileges to view or use this page.</h2>
+            }
+            
         </div>
     </body>
 </html>

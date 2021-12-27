@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Movie_Database_System.Models.ViewModels;
 
@@ -9,24 +10,12 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Movie_Database_System.Controllers.User
 {
     public class UserController : Controller
     {
-        private IConfiguration _config;
-        private IWebHostEnvironment _hostEnvironment;
-
-        public UserController(IConfiguration config, IWebHostEnvironment hostEnvironment)
-        {
-            _config = config;
-            _hostEnvironment = hostEnvironment;
-        }
-        public IActionResult Index()
-        {
-            return View();
-        }
-
         /*----------------------------------------------------
             PBKDF2: Password Based Key Derivation Function (2)
             Procedure follows:
@@ -37,6 +26,7 @@ namespace Movie_Database_System.Controllers.User
             4. Put the newly created hash and salt together again in a new array
             5. Convert this new hash to Base64 and return
         ----------------------------------------------------*/
+        [NonAction]
         public string Hash(string pw)
         {
 
@@ -53,6 +43,7 @@ namespace Movie_Database_System.Controllers.User
             return Convert.ToBase64String(hashBytes);
         }
 
+        [NonAction]
         public bool Verify(string pw, string pwHash)
         {
             /* Extract the bytes */
@@ -71,11 +62,15 @@ namespace Movie_Database_System.Controllers.User
         }
         public IActionResult Register()
         {
+            if (HttpContext.Session.GetString("_Username") != null) 
+            {
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+            }
             return View();
         }
 
         [HttpPost]
-        public IActionResult RegisterUser( UserRegisterVM userRegisterViewModel)
+        public IActionResult Register(UserRegisterVM userRegisterViewModel)
         {
             #region implicit 
             Movie_Database_System.Models.User newUser = userRegisterViewModel;
@@ -84,7 +79,12 @@ namespace Movie_Database_System.Controllers.User
 
             if (!ModelState.IsValid)
             {
-                return Json(ModelState.Values.FirstOrDefault().Errors);
+                ViewBag.Error = "Information given to register was invalid. Plase fill the form correctly.";
+                if (HttpContext.Session.GetString("_Username") != null)
+                {
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                }
+                return View();
             }
 
             try
@@ -99,7 +99,12 @@ namespace Movie_Database_System.Controllers.User
                 SqlDataReader reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    throw new Exception("This username is already taken. Please register with a different username.");
+                    ViewBag.Error = "Given username is already registered to someone else. Please try to register with another username.";
+                    if (HttpContext.Session.GetString("_Username") != null)
+                    {
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    }
+                    return View();
                 }
                 else
                 {
@@ -114,34 +119,58 @@ namespace Movie_Database_System.Controllers.User
                     command2.Parameters.Add("@password", System.Data.SqlDbType.NVarChar, 48).Value = Hash(newUser.password);
                     
                     command2.ExecuteNonQuery();
-                }
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("-------------------------");
-                Console.WriteLine(e.StackTrace);
-            }
+                    connection.Close();
 
-            return Json(newUser);
+                    ViewBag.User = newUser.name;
+                    if (HttpContext.Session.GetString("_Username") != null)
+                    {
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    }
+                    return View();
+                }
+                
+            }
+            catch (Exception)
+            {
+                ViewBag.Error = "Something went wrong while registering. Please refresh the page and try again.";
+                if (HttpContext.Session.GetString("_Username") != null)
+                {
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                }
+                return View();
+            }
         }
+
         public IActionResult Login()
         {
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                ViewBag.Username = JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Username"));
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+            }
+            if (TempData["LogoutOk"] != null)
+            {
+                ViewBag.LoggedOut = true;
+                TempData.Remove("LogoutOk");
+            }
             return View();
         }
+
         [HttpPost]
-        public IActionResult LoginUser(UserLoginVM userLoginViewModel ) 
+        public IActionResult Login(UserLoginVM userLoginViewModel) 
         {
-
-
             #region implicit 
             Movie_Database_System.Models.User loggedUser = userLoginViewModel;
             #endregion
 
             if(!ModelState.IsValid)
             {
-                return Json(ModelState.Values.FirstOrDefault().Errors); 
+                ViewBag.Error = "The username or password was invalid, or this user is not registered to Movie App Database.";
+                if (HttpContext.Session.GetString("_Username") != null)
+                {
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                }
+                return View();
             }
 
             try
@@ -156,30 +185,65 @@ namespace Movie_Database_System.Controllers.User
                 SqlDataReader reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    string dbUsername = reader.GetString(0);
-                    string dbPassword = reader.GetString(1);
-                    if (Verify(loggedUser.password, dbPassword))
+                    Models.User user = new Models.User(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4), reader.GetInt32(5));
+                    if (Verify(loggedUser.password, user.password))
                     {
-                        Console.WriteLine("Login Successfull!");
+                        reader.Close();
+                        connection.Close();
+
+                        // Login Successfull
+                        HttpContext.Session.SetString("_Username", JsonSerializer.Serialize(user.username));
+                        HttpContext.Session.SetString("_Privilege", JsonSerializer.Serialize(user.privilege.ToString()));
+                        
+                        TempData["Name"] = user.name;
+                        TempData["Privilege"] = user.privilege;
+
+                        return RedirectToAction("Index", "Home");
                     }
                     else
                     {
-                        throw new Exception("The username or password is invalid. Login failed.");
+                        ViewBag.Error = "The username or password was invalid, or this user is not registered to Movie App Database.";
+                        if (HttpContext.Session.GetString("_Username") != null)
+                        {
+                            ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                        }
+                        return View();
                     }
                 }
                 else
                 {
-                    throw new Exception("The username or password is invalid. Login failed.");
+                    ViewBag.Error = "The username or password was invalid, or this user is not registered to Movie App Database.";
+                    if (HttpContext.Session.GetString("_Username") != null)
+                    {
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    }
+                    return View();
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("-------------------------");
-                Console.WriteLine(e.StackTrace);
+                ViewBag.Error = "The username or password was invalid, or this user is not registered to Movie App Database.";
+                if (HttpContext.Session.GetString("_Username") != null)
+                {
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                }
+                return View();
             }
+        }
 
-            return Json(loggedUser);
+        public IActionResult Logout()
+        {
+            if (HttpContext.Session.GetString("_Username") != null)
+            {
+                TempData["LogoutOk"] = JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Username"));
+                HttpContext.Session.Remove("_Username");
+                HttpContext.Session.Remove("_Privilege");
+                return RedirectToAction("Login", "User");
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
         }
     }
 }

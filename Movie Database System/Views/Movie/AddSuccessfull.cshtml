@@ -23,7 +23,7 @@
             <p>@ViewBag.Error</p>
         </div>
     }
-    @if (ViewBag.Error == null) {
+    else if (ViewBag.Privilege != null && ViewBag.Privilege > 0) {
         <h1 class="display-6 text-center">Movie Added Successfully</h1>
         <div class="container centerContent">
             <div class="card" style="width: 36rem;">
@@ -45,5 +45,10 @@
                 </div>
             </div>
         </div>
+    }
+    else if (ViewBag.Privilege == null || (ViewBag.Privilege != null && ViewBag.Privilege == 0))
+    {
+        <h1 class="text-center fs-1">Unauthorized Access</h1>
+        <h2 id="AccessErrorMsg" class="text-center fs-4">You have to be logged in and have admin privileges to view or use this page.</h2>
     }
 }

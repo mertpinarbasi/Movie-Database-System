@@ -21,11 +21,9 @@
             </div>
         }
 
-
-
-        <div class="row">
-
-
+        else
+        {
+            <div class="row">
             <div class="col-md-4">
                 <p class="text-center">@movie.name</p>
                 <div class="card">
@@ -37,8 +35,6 @@
                         <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.date.ToShortDateString()</span>
 
                     </div>
-
-
                     <div class="card-body">
                         <p class="card-text">@movie.summary</p>
                         <div style="display:flex ; justify-content:space-evenly">
@@ -62,20 +58,16 @@
                     <div class="card-body">
                         <div style="display:flex ; justify-content:space-evenly">
                             <a asp-controller="Movie" asp-action="ActorsInMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Played Actors</a>
-
-
-                            <a asp-controller="Director" asp-action="DeleteDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-danger btn-md">Delete Director</a>
+                            @if (ViewBag.Privilege > 0) {
+                                <a asp-controller="Director" asp-action="DeleteDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-danger btn-md">Delete Director</a>
+                            }
                         </div>
                     </div>
                 </div>
             </div>
-
-
-
-
-
         </div>
-    </div>
+        }
 
+    </div>
 </body>
 </html>
