@@ -9,13 +9,28 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>@movie.name</title>
+    <style>
+        .movie {
+            width: 60%;
+        }
+
+        .card {
+            display: flex;
+            align-items: center;
+        }
+
+        img {
+            max-height: 30rem;
+            max-width: 20rem;
+        }
+    </style>
 </head>
 <body>
     <div class=container-fluid>
         @if (ViewBag.Error != null)
         {
-            <h3 class="text-capitalize">ERROR </h3>
+            <h3 class="text-capitalize">ERROR</h3>
             <div class="row justify-content-center align-align-items-center">
                 <p>Beklenmeyen bir hata oluştu ! </p>
             </div>
@@ -23,51 +38,43 @@
 
         else
         {
-            <div class="row">
-            <div class="col-md-4">
-                <p class="text-center">@movie.name</p>
-                <div class="card">
-                    <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
-                    <div style="display : flex ;justify-content:space-between; margin:8px">
+            <div class="row justify-content-center">
+                <div class="col-md4 movie">
+                    <p class="text-center fs-1 fw-bold">@movie.name</p>
+                    <div class="card">
+                        <img src="data:image/JPG;base64,@Convert.ToBase64String(movie.imageBinary, 0, movie.imageBinary.Length)" class="card-img-top" alt="...">
+                        <div style="display : flex ;justify-content:space-between; margin:8px">
 
-                        <span style="margin : 1px" class="badge rounded-pill bg-dark ">@movie.rating ⭐</span>
-                        <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.genre</span>
-                        <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.date.ToShortDateString()</span>
-
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">@movie.summary</p>
-                        <div style="display:flex ; justify-content:space-evenly">
-
-                            <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
-                            <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
+                            <span style="margin : 5px 10px" class="badge rounded-pill bg-dark ">@movie.rating ⭐</span>
+                            <span style="margin : 5px 10px" class="badge rounded-pill bg-dark">@movie.genre</span>
+                            <span style="margin : 5px 10px" class="badge rounded-pill bg-dark">@movie.date.ToShortDateString()</span>
 
                         </div>
-                    </div>
+                        <div class="card-body">
+                            <p class="card-text">@movie.summary</p>
+                            <div style="display:flex ; justify-content:space-evenly">
 
-                    @*<div class="card-body">
-                        <p class="card-text">@director.name</p>
-                        <div style="display:flex ; justify-content:space-evenly">
-
-                        <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
-                        <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
-
+                                <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
+                                <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
+                                <a asp-controller="Movie" asp-action="ActorsInMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Played Actors</a>
+                                @if (ViewBag.Privilege > 0) {
+                                    <a asp-controller="Director" asp-action="DeleteDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-danger btn-md">Delete Director</a>
+                                }
+                            </div>
                         </div>
+
+                        @*<div class="card-body">
+                            <div style="display:flex ; justify-content:space-evenly">
+                                <a asp-controller="Movie" asp-action="ActorsInMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Played Actors</a>
+                                @if (ViewBag.Privilege > 0) {
+                                    <a asp-controller="Director" asp-action="DeleteDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-danger btn-md">Delete Director</a>
+                                }
+                            </div>
                         </div>*@
-
-                    <div class="card-body">
-                        <div style="display:flex ; justify-content:space-evenly">
-                            <a asp-controller="Movie" asp-action="ActorsInMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Played Actors</a>
-                            @if (ViewBag.Privilege > 0) {
-                                <a asp-controller="Director" asp-action="DeleteDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-danger btn-md">Delete Director</a>
-                            }
-                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         }
-
     </div>
 </body>
 </html>
