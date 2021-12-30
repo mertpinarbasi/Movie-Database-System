@@ -36,7 +36,7 @@ namespace Movie_Database_System.Controllers
                 SqlDataReader movieReader = command.ExecuteReader();
                 while (movieReader.Read())
                 {
-                    topThreeMovies.Add(new Models.Movie(movieReader.GetString(0), movieReader.GetString(1), movieReader.GetString(2), (byte[])movieReader[3]));
+                    topThreeMovies.Add(new Models.Movie(movieReader.GetInt32(0), movieReader.GetString(1), movieReader.GetString(2), movieReader.GetString(3), (byte[])movieReader[4]));
                 }
                 movieReader.Close();
 
@@ -47,7 +47,7 @@ namespace Movie_Database_System.Controllers
                 SqlDataReader movieReader2 = command2.ExecuteReader();
                 while (movieReader2.Read())
                 {
-                    latestThreeMovies.Add(new Models.Movie(movieReader2.GetString(0), movieReader2.GetString(1), movieReader2.GetString(2), (byte[])movieReader2[3]));
+                    latestThreeMovies.Add(new Models.Movie(movieReader2.GetInt32(0), movieReader2.GetString(1), movieReader2.GetString(2), movieReader2.GetString(3), (byte[])movieReader2[4]));
                 }
                 movieReader2.Close();
 
@@ -72,14 +72,6 @@ namespace Movie_Database_System.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
-        {
-            if (HttpContext.Session.GetString("_Username") != null)
-            {
-                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
-            }
-            return View();
-        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

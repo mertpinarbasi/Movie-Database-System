@@ -31,8 +31,9 @@ namespace Movie_Database_System.Models
             this.rating = rating;
         }
 
-        public Movie(string name, string genre, string summary, byte[] imageBinary)
+        public Movie(int movieId, string name, string genre, string summary, byte[] imageBinary)
         {
+            this.movieId = movieId;
             this.name = name;
             this.genre = genre;
             this.summary = summary;

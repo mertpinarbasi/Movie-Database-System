@@ -5,7 +5,7 @@
     String movieName = ViewData["movieName"] as String;
 }
 
-<h1 class="text-center">Actors in @movieName</h1>
+<h1 class="text-center mb-5">Actors in @movieName</h1>
 @if (ViewBag.Error != null)
 {
     <h3 class="text-capitalize">ERROR </h3>
@@ -13,12 +13,16 @@
         <p>Beklenmeyen bir hata oluştu ! </p>
     </div>
 }
-<ul>
-    @foreach (Actor actor in actors)
-    {
-        <li>
-            @actor.name @actor.surname
-            <a asp-controller="Actor" asp-action="GetActor" asp-route-id="@actor.id" role="button" class="btn btn-secondary btn-md">Details</a>
-        </li>
-    }
-</ul>
+
+@foreach (Actor actor in actors)
+{
+    <div class="d-flex justify-content-center align-content-center ">
+
+
+        <div class="m-3">
+
+            <a style="width:300px" asp-controller="Actor" asp-action="GetActor" asp-route-id="@actor.id" role="button" class="btn btn-primary btn-md"> <h4> @actor.name @actor.surname </h4></a>
+        </div>
+
+    </div>
+}
