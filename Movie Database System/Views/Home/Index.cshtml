@@ -2,6 +2,21 @@
     ViewData["Title"] = "Home Page";
 }
 
+<style>
+    img {
+        width: 18rem;
+        height: 30rem;
+    }
+    p {
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        height: 7.5rem;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+</style>
+
 <div class="text-center">
     <h1 class="display-4">Movie Database System</h1>
 </div>
@@ -20,6 +35,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+
+
+<br>
 
 <div>
     <h3>Most Viewed</h3>
@@ -40,6 +58,8 @@
         }
     </div>
 
+    <br><br><br>
+  
     <div>
         <h3>Last Added</h3>
     </div>
@@ -57,4 +77,6 @@
             </div>
         }
     </div>
+
+    <br>
 </div>
