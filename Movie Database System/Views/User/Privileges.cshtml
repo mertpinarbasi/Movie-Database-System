@@ -58,13 +58,19 @@
         <section id="users">
                 @foreach (User user in users)
                 {
-                    <div>
+                    <div class="mb-6" style="margin-bottom: 10px;">
                         <span class="fs-4">- @user.name @user.surname (Username: @user.username)</span>
-                        
-                        @if (user.privilege == 2 && user.privilege == ViewBag.Privilege)
+                    </div>
+                    <div class="mb-6" style="margin-bottom: 20px;">
+                        @if (user.privilege == 2 && user.privilege == ViewBag.Privilege && user.username == ViewBag.LoggedUser)
                         {
                             <a asp-controller="User" asp-action="SetAsAdmin" asp-route-id="@user.userId" type="button" class="btn btn-primary disabled">Set Admin</a>
                             <a asp-controller="User" asp-action="SetAsNormal" asp-route-id="@user.userId" type="button" class="btn btn-danger disabled">Set Normal</a>
+                        }
+                        else if (user.privilege == 2 && user.privilege == ViewBag.Privilege)
+                        {
+                            <a asp-controller="User" asp-action="SetAsAdmin" asp-route-id="@user.userId" type="button" class="btn btn-primary disabled">Set Admin</a>
+                            <a asp-controller="User" asp-action="SetAsNormal" asp-route-id="@user.userId" type="button" class="btn btn-danger">Set Normal</a>
                         }
 
                         @if (user.privilege == 1 || (user.privilege == 2 && user.privilege != ViewBag.Privilege))

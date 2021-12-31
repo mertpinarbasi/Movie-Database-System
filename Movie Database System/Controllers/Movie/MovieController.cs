@@ -11,12 +11,14 @@ using System.Collections;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Movie_Database_System.Controllers.Movie
 {
     public class MovieController : Controller
     {
         private List<Movie_Database_System.Models.Director> directors;
+        private readonly IMemoryCache _memoryCache;
 
         private string Separate(string filePath)
         {
@@ -32,33 +34,52 @@ namespace Movie_Database_System.Controllers.Movie
             return output;
         }
 
-        public MovieController(IConfiguration config)
+        public MovieController(IMemoryCache memoryCache)
         {
-            directors = new List<Movie_Database_System.Models.Director>();
+            directors = new List<Models.Director>();
+            _memoryCache = memoryCache;
         }
 
         public IActionResult AddMovie()
         {
-            try
+            if (!_memoryCache.TryGetValue("directorCache", out List<Models.Director> _))
             {
-                var connection = new SqlConnection(Startup.databaseConnStr);
-                var command = new SqlCommand("getAllDirectors", connection);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
+                try
                 {
-                    directors.Add(new Movie_Database_System.Models.Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2), reader.GetInt32(3)));
-                }
+                    List<Models.Director> updateDirectors = new List<Models.Director>();
+                    var connection = new SqlConnection(Startup.databaseConnStr);
+                    var command = new SqlCommand("getAllDirectors", connection);
+                    command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                ViewData["DirectorList"] = directors;
-                reader.Close();
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        updateDirectors.Add(new Movie_Database_System.Models.Director(reader.GetString(0), reader.GetString(1), reader.GetInt32(2), reader.GetInt32(3)));
+                    }
+                    reader.Close();
+                    connection.Close();
+
+                    ViewData["DirectorList"] = updateDirectors;
+
+                    var cacheExpiryOptions = new MemoryCacheEntryOptions
+                    {
+                        Priority = CacheItemPriority.Normal,
+                        SlidingExpiration = TimeSpan.FromSeconds(60 * 5), // 5 mins
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(60 * 60 * 24) // a day
+                    };
+
+                    _memoryCache.Set("directorCache", updateDirectors, cacheExpiryOptions);
+                }
+                catch (Exception e)
+                {
+                    ViewBag.Error = e.Message;
+                    return View();
+                }
             }
-            catch (Exception e)
+            else
             {
-                ViewBag.Error = e.Message;
-                return View();
+                ViewData["DirectorList"] = _memoryCache.Get<List<Models.Director>>("directorCache");
             }
 
             if (HttpContext.Session.GetString("_Username") != null)
@@ -75,12 +96,13 @@ namespace Movie_Database_System.Controllers.Movie
             }
             return View();
         }
+
         [HttpPost]
         public IActionResult SearchMovie(string movieName)
         {
             var connection = new SqlConnection(Startup.databaseConnStr);
             var command = new SqlCommand("Search_Movie", connection);
-            List<Movie_Database_System.Models.Movie> movies = new List<Models.Movie>();
+            List<Models.Movie> movies = new List<Models.Movie>();
 
             command.CommandType = System.Data.CommandType.StoredProcedure;
             command.Parameters.Add("@searchInput", System.Data.SqlDbType.NVarChar).Value = movieName;
@@ -88,34 +110,51 @@ namespace Movie_Database_System.Controllers.Movie
 
             if (movieName != null)
             {
-                connection.Open();
-                SqlDataReader searchMovieReader = command.ExecuteReader();
-
-
-                while (searchMovieReader.Read())
+                if (!_memoryCache.TryGetValue(movieName, out List<Models.Movie> _))
                 {
-                    try
+                    connection.Open();
+                    SqlDataReader searchMovieReader = command.ExecuteReader();
+
+                    while (searchMovieReader.Read())
                     {
-                        movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4)), searchMovieReader.GetString(5), searchMovieReader.GetString(6), (byte[])searchMovieReader[7], searchMovieReader.GetInt32(8)));
-                    }
-                    catch (Exception e)
-                    {
-                        ViewBag.Error = e.Message;
-                        if (HttpContext.Session.GetString("_Username") != null)
+                        try
                         {
-                            ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                            movies.Add(new Models.Movie(searchMovieReader.GetInt32(0), searchMovieReader.GetString(1), searchMovieReader.GetDateTime(2), searchMovieReader.GetString(3), Convert.ToInt32(searchMovieReader.GetDouble(4)), searchMovieReader.GetString(5), searchMovieReader.GetString(6), (byte[])searchMovieReader[7], searchMovieReader.GetInt32(8)));
                         }
-                        return View();
+                        catch (Exception e)
+                        {
+                            ViewBag.Error = e.Message;
+                            if (HttpContext.Session.GetString("_Username") != null)
+                            {
+                                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                            }
+                            return View();
+                        }
                     }
+                    searchMovieReader.Close();
+                    ViewBag.movieResults = movies;
+
+                    var cacheExpiryOptions = new MemoryCacheEntryOptions
+                    {
+                        Priority = CacheItemPriority.Normal,
+                        SlidingExpiration = TimeSpan.FromSeconds(60 * 5), // 5 mins
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(60 * 60 * 24) // a day
+                    };
+
+                    _memoryCache.Set(movieName, movies, cacheExpiryOptions);
                 }
-                searchMovieReader.Close();
-                ViewBag.movieResults = movies;
+                else
+                {
+                    ViewBag.movieResults = _memoryCache.Get<List<Models.Movie>>(movieName);
+                }
+                
                 if (HttpContext.Session.GetString("_Username") != null)
                 {
                     ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
                 }
                 return View();
             }
+
             ViewBag.Error = "Arama alanı boş bırakılamaz!";
             if (HttpContext.Session.GetString("_Username") != null)
             {
@@ -134,27 +173,58 @@ namespace Movie_Database_System.Controllers.Movie
             Models.Movie selectedMovie = null;
             Models.Director selectedDirector = null;
             Models.Actor selectedActor = null;
-            connection.Open();
-            try
+
+            if (!_memoryCache.TryGetValue("movie#" + id.ToString(), out Models.Movie _))
             {
-                SqlDataReader getMovieReader = command.ExecuteReader();
-                getMovieReader.Read();
-                selectedMovie = (new Models.Movie(getMovieReader.GetInt32(0), getMovieReader.GetString(1), getMovieReader.GetDateTime(2), getMovieReader.GetString(3), Convert.ToInt32(getMovieReader.GetDouble(4)), getMovieReader.GetString(5), getMovieReader.GetString(6), (byte[])getMovieReader[7], getMovieReader.GetInt32(8)));
-                selectedDirector = (new Models.Director(getMovieReader.GetString(9), getMovieReader.GetString(10), getMovieReader.GetInt32(11)));
-                selectedActor = (new Models.Actor(getMovieReader.GetString(12), getMovieReader.GetString(13), getMovieReader.GetInt32(14)));
-                getMovieReader.Close();
-                ViewData["Movie"] = selectedMovie;
-                ViewData["Director"] = selectedDirector;
-                ViewData["Actor"] = selectedActor;
-                if (HttpContext.Session.GetString("_Username") != null)
+                try
                 {
-                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    connection.Open();
+                    SqlDataReader getMovieReader = command.ExecuteReader();
+                    getMovieReader.Read();
+
+                    selectedMovie = (new Models.Movie(getMovieReader.GetInt32(0), getMovieReader.GetString(1), getMovieReader.GetDateTime(2), getMovieReader.GetString(3), Convert.ToInt32(getMovieReader.GetDouble(4)), getMovieReader.GetString(5), getMovieReader.GetString(6), (byte[])getMovieReader[7], getMovieReader.GetInt32(8)));
+                    selectedDirector = (new Models.Director(getMovieReader.GetString(9), getMovieReader.GetString(10), getMovieReader.GetInt32(11)));
+                    selectedActor = (new Models.Actor(getMovieReader.GetString(12), getMovieReader.GetString(13), getMovieReader.GetInt32(14)));
+                    getMovieReader.Close();
+                    connection.Close();
+
+                    ViewData["Movie"] = selectedMovie;
+                    ViewData["Director"] = selectedDirector;
+                    ViewData["Actor"] = selectedActor;
+
+                    var cacheExpiryOptions = new MemoryCacheEntryOptions
+                    {
+                        Priority = CacheItemPriority.Normal,
+                        SlidingExpiration = TimeSpan.FromSeconds(60 * 5), // 5 mins
+                        AbsoluteExpiration = DateTime.Now.AddSeconds(60 * 60 * 12) // 12 hours
+                    };
+
+                    _memoryCache.Set("movie#" + id.ToString(), selectedMovie, cacheExpiryOptions);
+                    _memoryCache.Set("movie#" + id.ToString() + "director", selectedDirector, cacheExpiryOptions);
+                    _memoryCache.Set("movie#" + id.ToString(), selectedMovie, cacheExpiryOptions);
+
+                    if (HttpContext.Session.GetString("_Username") != null)
+                    {
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    }
+                    return View();
                 }
-                return View();
+                catch (Exception ex)
+                {
+                    ViewBag.Error = ex.Message;
+                    if (HttpContext.Session.GetString("_Username") != null)
+                    {
+                        ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    }
+                    return View();
+                }
             }
-            catch (Exception ex)
+            else
             {
-                ViewBag.Error = ex.Message;
+                ViewData["Movie"] = _memoryCache.Get<Models.Movie>("movie#" + id.ToString());
+                ViewData["Director"] = _memoryCache.Get<Models.Director>("movie#" + id.ToString() + "director");
+                ViewData["Actor"] = _memoryCache.Get<Models.Actor>("movie#" + id.ToString() + "actor");
+
                 if (HttpContext.Session.GetString("_Username") != null)
                 {
                     ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));

@@ -276,6 +276,7 @@ namespace Movie_Database_System.Controllers.User
                         }
                         ViewData["NormalUsers"] = normalUsers;
                         ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                        ViewBag.LoggedUser = JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Username"));
                         return View();
                     }
                     catch (Exception)
