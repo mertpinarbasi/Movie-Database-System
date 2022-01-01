@@ -54,7 +54,7 @@
                             <p class="card-text">@movie.summary</p>
                             <div style="display:flex ; justify-content:space-evenly">
 
-                                <a href=@movie.trailerURL role="button" class="btn btn-secondary btn-md">Trailer URL</a>
+                                <a href=@movie.trailerURL target="_blank" rel="noopener noreferrer" role="button" class="btn btn-secondary btn-md">Trailer URL</a>
                                 <a asp-controller="Director" asp-action="GetDirector" asp-route-id="@movie.directorId" role="button" class="btn btn-secondary btn-md">Director Details</a>
                                 <a asp-controller="Movie" asp-action="ActorsInMovie" asp-route-id="@movie.movieId" role="button" class="btn btn-secondary btn-md">Played Actors</a>
                                 @if (ViewBag.Privilege > 0) {

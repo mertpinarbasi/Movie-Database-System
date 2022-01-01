@@ -17,7 +17,15 @@
 
     .error {
         margin: 60px 0px;
+    }
 
+    p {
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        height: 7.5rem;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 </style>
 
@@ -45,14 +53,18 @@
             <div class="row">
                 @foreach (Movie movie in movieList)
                 {
-                    <div class="col">
+                    <div class="col-md-4">
                         <div class="card-body">
-                            <h3 class="card-title text-center">@movie.name</h3>
+                            <div style="height: 80px">
+                                <h3 class="card-title text-center">@movie.name</h3>
+                            </div>
                             <div class="centerContent" style="display : flex ;justify-content: space-evenly; margin: 20px">
                                 <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.genre</span>
                                 <span style="margin : 1px" class="badge rounded-pill bg-dark">@movie.rating</span>
                             </div>
-                            <p style="margin: 20px" class="card-text text-center">@movie.summary</p>
+                            <div>
+                                <p style="margin: 20px" class="card-text text-center">@movie.summary</p>
+                            </div>
                             <div class="centerContent">
                                 <a asp-controller="Movie" asp-action="GetMovie" asp-route-id="@movie.movieId" class="btn btn-primary">Movie Details</a>
                             </div>
