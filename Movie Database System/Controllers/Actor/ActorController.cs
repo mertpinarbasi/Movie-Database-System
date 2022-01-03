@@ -12,35 +12,44 @@ namespace Movie_Database_System.Controllers.Actor
     {
         public IActionResult AddActor()
         {
-            List<Models.Movie> movieInfo = new List<Models.Movie>();
-
-            var connection = new SqlConnection(Startup.databaseConnStr);
-            try
+            if (HttpContext.Session.GetString("_Username") != null && Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege"))) > 0)
             {
-                var command = new SqlCommand("getAllMovieInfo", connection);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
+                List<Models.Movie> movieInfo = new List<Models.Movie>();
 
-                connection.Open();
-                SqlDataReader movieReader = command.ExecuteReader();
-                while(movieReader.Read())
-                { 
-                    movieInfo.Add(new Models.Movie(movieReader.GetInt32(0), movieReader.GetString(1), movieReader.GetDateTime(2), movieReader.GetString(3), Convert.ToInt32(movieReader.GetDouble(4))));
+                var connection = new SqlConnection(Startup.databaseConnStr);
+                try
+                {
+                    var command = new SqlCommand("getAllMovieInfo", connection);
+                    command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    connection.Open();
+                    SqlDataReader movieReader = command.ExecuteReader();
+                    while (movieReader.Read())
+                    {
+                        movieInfo.Add(new Models.Movie(movieReader.GetInt32(0), movieReader.GetString(1), movieReader.GetDateTime(2), movieReader.GetString(3), Convert.ToInt32(movieReader.GetDouble(4))));
+                    }
+                    movieReader.Close();
+                    connection.Close();
                 }
-                movieReader.Close();
-                connection.Close(); 
-            }
-            catch (Exception err)
-            {
-                ViewData["Error"] = err;
+                catch (Exception)
+                {
+                    ViewData["Error"] = "Something went wrong while retrieving movie list. Please try to refresh the page.";
+                    return View();
+                }
+
+                ViewData["MovieList"] = movieInfo;
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
                 return View();
             }
-
-            ViewData["MovieList"] = movieInfo;
-            if (HttpContext.Session.GetString("_Username") != null)
+            else
             {
-                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                ViewData["Error"] = "You don't have authorization required to view or use this page.";
+                if (HttpContext.Session.GetString("_Username") != null)
+                {
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                }
+                return View();
             }
-            return View();
         }
 
         [HttpPost]
@@ -48,75 +57,92 @@ namespace Movie_Database_System.Controllers.Actor
         {
             Movie_Database_System.Models.Actor newActor = actorVM;
 
-            if (ModelState.IsValid)
+            if (HttpContext.Session.GetString("_Username") != null && HttpContext.Session.GetInt32("_Privilege") > 0)
             {
-                int chosenMovieId = Int32.Parse(chosenMovie);
-
-                var connection = new SqlConnection(Startup.databaseConnStr);
-                int newActorId = -1;
-                try
+                if (ModelState.IsValid)
                 {
-                    /* Get a list of actors to see if new actor already exists */
-                    List<Models.Actor> allActors = new List<Models.Actor>();
-                    var command = new SqlCommand("getAllActors", connection);
-                    command.CommandType = System.Data.CommandType.StoredProcedure;
+                    int chosenMovieId = Int32.Parse(chosenMovie);
 
-                    connection.Open();
-                    SqlDataReader actorReader = command.ExecuteReader();
-                    while (actorReader.Read())
+                    var connection = new SqlConnection(Startup.databaseConnStr);
+                    int newActorId = -1;
+                    try
                     {
-                        allActors.Add(new Models.Actor(actorReader.GetString(1), actorReader.GetString(2), actorReader.GetInt32(3), actorReader.GetInt32(0)));
-                    }
-                    actorReader.Close();
+                        /* Get a list of actors to see if new actor already exists */
+                        List<Models.Actor> allActors = new List<Models.Actor>();
+                        var command = new SqlCommand("getAllActors", connection);
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                    bool alreadyExists = false;
-                    foreach (Models.Actor actor in allActors)
-                    {
-                        if (actor.name.ToLower() == newActor.name.ToLower() && actor.surname.ToLower() == newActor.surname.ToLower() && actor.age == newActor.age)
+                        connection.Open();
+                        SqlDataReader actorReader = command.ExecuteReader();
+                        while (actorReader.Read())
                         {
-                            alreadyExists = true;
-                            newActorId = actor.id;
-                            break;
+                            allActors.Add(new Models.Actor(actorReader.GetString(1), actorReader.GetString(2), actorReader.GetInt32(3), actorReader.GetInt32(0)));
                         }
-                    }
+                        actorReader.Close();
 
-                    if (!alreadyExists)
+                        bool alreadyExists = false;
+                        foreach (Models.Actor actor in allActors)
+                        {
+                            if (actor.name.ToLower() == newActor.name.ToLower() && actor.surname.ToLower() == newActor.surname.ToLower() && actor.age == newActor.age)
+                            {
+                                alreadyExists = true;
+                                newActorId = actor.id;
+                                break;
+                            }
+                        }
+
+                        if (!alreadyExists)
+                        {
+                            /* Upload new actor to database */
+                            var command2 = new SqlCommand("addActor", connection);
+
+                            command2.CommandType = System.Data.CommandType.StoredProcedure;
+                            command2.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 20).Value = newActor.name;
+                            command2.Parameters.Add("@surname", System.Data.SqlDbType.NVarChar, 20).Value = newActor.surname;
+                            command2.Parameters.Add("@age", System.Data.SqlDbType.Int).Value = newActor.age;
+                            command2.Parameters.Add("@newActorId", System.Data.SqlDbType.Int);
+                            command2.Parameters["@newActorId"].Direction = System.Data.ParameterDirection.Output;
+
+                            command2.ExecuteNonQuery();
+                            newActorId = (int)command2.Parameters["@newActorId"].Value;
+                            newActor.id = newActorId;
+                        }
+
+                        /* Update played movie table for the new actor */
+                        var command3 = new SqlCommand("updatePlayedMovies", connection);
+
+                        command3.CommandType = System.Data.CommandType.StoredProcedure;
+                        command3.Parameters.Add("@actorid", System.Data.SqlDbType.Int).Value = newActorId;
+                        command3.Parameters.Add("@movieid", System.Data.SqlDbType.Int).Value = chosenMovieId;
+
+                        command3.ExecuteNonQuery();
+                        connection.Close();
+                    }
+                    catch (Exception)
                     {
-                        /* Upload new actor to database */
-                        var command2 = new SqlCommand("addActor", connection);
-
-                        command2.CommandType = System.Data.CommandType.StoredProcedure;
-                        command2.Parameters.Add("@name", System.Data.SqlDbType.NVarChar, 20).Value = newActor.name;
-                        command2.Parameters.Add("@surname", System.Data.SqlDbType.NVarChar, 20).Value = newActor.surname;
-                        command2.Parameters.Add("@age", System.Data.SqlDbType.Int).Value = newActor.age;
-                        command2.Parameters.Add("@newActorId", System.Data.SqlDbType.Int);
-                        command2.Parameters["@newActorId"].Direction = System.Data.ParameterDirection.Output;
-
-                        command2.ExecuteNonQuery();
-                        newActorId = (int)command2.Parameters["@newActorId"].Value;
-                        newActor.id = newActorId;
+                        ViewData["Error"] = "Something went wrong while adding actor to database. Please refresh the page and try adding again.";
+                        return View();
                     }
 
-                    /* Update played movie table for the new actor */
-                    var command3 = new SqlCommand("updatePlayedMovies", connection);
-
-                    command3.CommandType = System.Data.CommandType.StoredProcedure;
-                    command3.Parameters.Add("@actorid", System.Data.SqlDbType.Int).Value = newActorId;
-                    command3.Parameters.Add("@movieid", System.Data.SqlDbType.Int).Value = chosenMovieId;
-
-                    command3.ExecuteNonQuery();
-                    connection.Close();
-                }
-                catch (Exception err)
-                {
-                    ViewData["Error"] = err;
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                    ViewBag.Previous = true;
                     return View();
                 }
 
-                return Json(newActor);
+                ViewBag.Previous = false;
+                ViewData["Error"] = "Information entered for actor is invalid. Please fill the form correctly.";
+                ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                return View();
             }
-
-            return Json(ModelState.Values.FirstOrDefault().Errors);
+            else
+            {
+                ViewBag.Error = "You don't have authorization required to view or use this page.";
+                if (HttpContext.Session.GetString("_Username") != null)
+                {
+                    ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
+                }
+                return View();
+            }
         }
 
         public IActionResult GetActor(string id)
