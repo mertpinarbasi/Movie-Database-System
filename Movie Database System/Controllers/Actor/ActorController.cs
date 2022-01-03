@@ -57,7 +57,8 @@ namespace Movie_Database_System.Controllers.Actor
         {
             Movie_Database_System.Models.Actor newActor = actorVM;
 
-            if (HttpContext.Session.GetString("_Username") != null && HttpContext.Session.GetInt32("_Privilege") > 0)
+
+            if (HttpContext.Session.GetString("_Username") != null && Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege"))) > 0)
             {
                 if (ModelState.IsValid)
                 {
@@ -65,8 +66,27 @@ namespace Movie_Database_System.Controllers.Actor
 
                     var connection = new SqlConnection(Startup.databaseConnStr);
                     int newActorId = -1;
+                    List<Models.Movie> movieInfo = new List<Models.Movie>();
                     try
                     {
+
+
+                        var movieInfoCommand = new SqlCommand("getAllMovieInfo", connection);
+                        movieInfoCommand.CommandType = System.Data.CommandType.StoredProcedure;
+
+                        connection.Open();
+                        SqlDataReader movieReader = movieInfoCommand.ExecuteReader();
+                        while (movieReader.Read())
+                        {
+                            movieInfo.Add(new Models.Movie(movieReader.GetInt32(0), movieReader.GetString(1), movieReader.GetDateTime(2), movieReader.GetString(3), Convert.ToInt32(movieReader.GetDouble(4))));
+                        }
+                        movieReader.Close();
+                        connection.Close();
+
+
+
+
+
                         /* Get a list of actors to see if new actor already exists */
                         List<Models.Actor> allActors = new List<Models.Actor>();
                         var command = new SqlCommand("getAllActors", connection);
@@ -123,7 +143,7 @@ namespace Movie_Database_System.Controllers.Actor
                         ViewData["Error"] = "Something went wrong while adding actor to database. Please refresh the page and try adding again.";
                         return View();
                     }
-
+                    ViewData["MovieList"] = movieInfo;
                     ViewBag.Privilege = Int32.Parse(JsonSerializer.Deserialize<string>(HttpContext.Session.GetString("_Privilege")));
                     ViewBag.Previous = true;
                     return View();
@@ -151,7 +171,7 @@ namespace Movie_Database_System.Controllers.Actor
             List<String> moviesOfActor = new List<String>();
             String movieName;
             var connection = new SqlConnection(Startup.databaseConnStr);
-            
+
             try
             {
                 var command = new SqlCommand("getActor", connection);
