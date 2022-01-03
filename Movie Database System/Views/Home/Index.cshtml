@@ -16,6 +16,10 @@
         text-overflow: ellipsis;
         overflow: hidden;
     }
+
+    .error {
+        margin: 60px 0px;
+    }
 </style>
 
 <div class="text-center">
@@ -40,11 +44,12 @@
 
 <br>
 
-<div>
-    <h3>Most Viewed</h3>
-</div>
-
-<div class="container">
+@if (ViewData["TopThreeList"] != null && ViewData["LatestThreeList"] != null)
+{
+    <div>
+        <h3>Most Viewed</h3>
+    </div>
+    <div class="container">
     <div class="row">
         @foreach (var movie in ViewData["TopThreeList"] as List<Movie_Database_System.Models.Movie>)
         {
@@ -88,4 +93,12 @@
     </div>
 
     <br>
-</div>
+    </div>
+}
+else
+{
+    <h1 class="text-center fs-1">An Error Occured</h1>
+    <h2 class="text-center fs-4 error">Something went wrong while retrieving movies. Please try to refresh the page.</h2>
+}
+
+

@@ -15,7 +15,7 @@
 
 <div class="container">
     
-    @if (ViewBag.Error != null)
+    @if (ViewBag.Error != null || (ViewBag.Privilege == null || (ViewBag.Privilege != null && ViewBag.Privilege < 2)))
     {
         <section class="row centerContent">
             <h2 class="text-center fw-bolder">An Error Occured</h2>
@@ -51,7 +51,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    else if (ViewBag.Privilege != null && ViewBag.Privilege > 1)
+    @if (ViewBag.Privilege != null && ViewBag.Privilege > 1)
     {
         <h1 class="text-center">Change User Privileges</h1>
 
@@ -88,10 +88,4 @@
                 }
         </section>
     }
-    else if (ViewBag.Privilege == null || (ViewBag.Privilege != null && ViewBag.Privilege < 2))
-    {
-         <h1 class="text-center fs-1">Unauthorized Access</h1>
-         <h2 class="text-center fs-4 error">You have to be logged in and have required admin privileges to view or use this page.</h2>
-    }
-
 </div>

@@ -72,7 +72,7 @@ namespace Movie_Database_System.Controllers.Actor
                     bool alreadyExists = false;
                     foreach (Models.Actor actor in allActors)
                     {
-                        if (actor.name == newActor.name && actor.surname == newActor.surname && actor.age == newActor.age)
+                        if (actor.name.ToLower() == newActor.name.ToLower() && actor.surname.ToLower() == newActor.surname.ToLower() && actor.age == newActor.age)
                         {
                             alreadyExists = true;
                             newActorId = actor.id;
